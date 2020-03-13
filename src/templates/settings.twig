@@ -15,12 +15,14 @@
 
 {% import "_includes/forms" as forms %}
 
-{#{% do view.registerAssetBundle("goldinteractive\\safedelete\\assetbundles\\safedelete\\SafedeleteAsset") %}#}
+ {{ forms.lightswitchField({
+     name: 'hideDefaultDeleteAction',
+     label: 'Hide default delete action?'|t('safedelete'),
+     on: settings['hideDefaultDeleteAction'],
+ }) }}
 
-{{ forms.textField({
-    label: 'Some Field',
-    instructions: 'Enter some setting here.',
-    id: 'someAttribute',
-    name: 'someAttribute',
-    value: settings['someAttribute']})
-}}
+ {{ forms.lightswitchField({
+     name: 'allowForceDelete',
+     label: 'Allow force delete'|t('safedelete'),
+     on: settings['allowForceDelete'],
+ }) }}

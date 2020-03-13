@@ -26,9 +26,14 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * @var string
+     * @var bool
      */
-    public $someAttribute = 'Some Default';
+    public $hideDefaultDeleteAction = true;
+
+    /**
+     * @var bool
+     */
+    public $allowForceDelete = false;
 
     // Public Methods
     // =========================================================================
@@ -39,8 +44,7 @@ class Settings extends Model
     public function rules()
     {
         return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
+            [['hideDefaultDeleteAction','allowForceDelete'], 'boolean'],
         ];
     }
 }

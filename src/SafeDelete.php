@@ -90,8 +90,7 @@ class SafeDelete extends Plugin
      */
     protected function settingsHtml(): string
     {
-        $view = Craft::$app->getView();
-        $assetBundle = $view->registerAssetBundle(SafedeleteAsset::class);
+        Craft::$app->getView()->registerAssetBundle(SafedeleteAsset::class);
 
         return Craft::$app->view->renderTemplate(
             'safedelete/settings',
