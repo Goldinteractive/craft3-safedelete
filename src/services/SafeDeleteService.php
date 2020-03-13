@@ -42,6 +42,36 @@ class SafeDeleteService extends Component
         return $relations;
     }
 
+    /**
+     * Returns an array only with ids which are
+     * not referneced and safe to delete.
+     *
+     * @param $ids
+     * @param $type
+     * @return array
+     */
+    public function filterReferencedIds($ids, $type)
+    {
+        $arrIds = [];
+        $arrRet = [];
+
+        $relations = $this->getUsagesFor($ids, $type);
+
+        foreach ($relations as $elements) {
+            foreach($elements as $element) {
+                $arrIds[] = $element['sourceElement']->id;
+            }
+        }
+
+        foreach($ids as $id) {
+            if (!in_array($id, $arrIds)) {
+                $arrRet[] = $id;
+            }
+        }
+
+        return $arrRet;
+    }
+
     protected function getRelationsForElement($id)
     {
         //todo

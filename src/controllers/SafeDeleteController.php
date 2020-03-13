@@ -68,12 +68,33 @@ class SafeDeleteController extends Controller
 
     public function actionForceDelete()
     {
-        //todo
+        $request = Craft::$app->getRequest();
+        $ids = $request->getParam('ids');
+        $type = $request->getParam('type');
+
+        $settings = SafeDelete::$plugin->getSettings();
+
+        if ($settings->allowForceDelete) {
+
+            return $this->doAction($ids, $type);
+        }
+
+        return $this->asJson(
+            [
+                'success' => false,
+            ]
+        );
     }
 
     public function actionDeleteUnreferenced()
     {
-        //todo
+        $request = Craft::$app->getRequest();
+        $ids = $request->getParam('ids');
+        $type = $request->getParam('type');
+
+        $ids = SafeDelete::$plugin->safeDelete->filterReferencedIds($ids, $type);
+
+        return $this->doAction($ids, $type);
     }
 
     protected function doAction($ids, $type)
