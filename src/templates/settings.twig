@@ -1,0 +1,26 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Safedelete plugin for Craft CMS 3.x
+ *
+ * Safedelete Settings.twig
+ *
+ * @author    Goldinteractive
+ * @copyright Copyright (c) 2020 Goldinteractive
+ * @link      https://goldinteractive.ch
+ * @package   Safedelete
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{#{% do view.registerAssetBundle("goldinteractive\\safedelete\\assetbundles\\safedelete\\SafedeleteAsset") %}#}
+
+{{ forms.textField({
+    label: 'Some Field',
+    instructions: 'Enter some setting here.',
+    id: 'someAttribute',
+    name: 'someAttribute',
+    value: settings['someAttribute']})
+}}

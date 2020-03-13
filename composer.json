@@ -1,0 +1,39 @@
+{
+    "name": "goldinteractive/craft3-safedelete",
+    "description": "Delete elements without breaking relations",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "safedelete"
+    ],
+    "support": {
+        "docs": "https://github.com/Goldinteractive/craft3-safedelete/blob/master/README.md",
+        "issues": "https://github.com/Goldinteractive/craft3-safedelete/issues"
+    },
+    "authors": [
+        {
+            "name": "Goldinteractive",
+            "homepage": "https://goldinteractive.ch"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0-RC1"
+    },
+    "autoload": {
+        "psr-4": {
+          "goldinteractive\\safedelete\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "SafeDelete",
+        "handle": "safedelete",
+        "hasCpSettings": true,
+        "hasCpSection": false,
+        "changelogUrl": "https://raw.githubusercontent.com/Goldinteractive/craft3-safedelete/master/CHANGELOG.md",
+        "class": "goldinteractive\\safedelete\\SafeDelete"
+    }
+}
