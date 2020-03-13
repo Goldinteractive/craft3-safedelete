@@ -10,7 +10,11 @@
 
 namespace goldinteractive\safedelete;
 
+use craft\base\Volume;
+use craft\elements\Asset;
+use craft\events\RegisterElementActionsEvent;
 use goldinteractive\safedelete\assetbundles\safedelete\SafedeleteAsset;
+use goldinteractive\safedelete\elements\actions\SafeDeleteAssets;
 use goldinteractive\safedelete\services\SafeDeleteService;
 use goldinteractive\safedelete\models\Settings;
 
@@ -59,19 +63,35 @@ class SafeDelete extends Plugin
         parent::init();
         self::$plugin = $this;
 
+        $this->controllerNamespace = 'goldinteractive\safedelete\controllers';
+
         $this->setComponents(
             [
-                'safedelete' => SafeDeleteService::class,
+                'safeDelete' => SafeDeleteService::class,
             ]
         );
 
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['cpActionTrigger1'] = 'safedelete/safe-delete/do-something';
+        Event::on(Asset::class, Asset::EVENT_REGISTER_ACTIONS, function (RegisterElementActionsEvent $event) {
+            if (preg_match('/^folder:([a-z0-9\-]+)/', $event->source, $matches)) {
+                $folderId = $matches[1];
+
+                $folder = Craft::$app->getAssets()->getFolderByUid($folderId);
+                /** @var Volume $volume */
+                $volume = $folder->getVolume();
+
+                if (Craft::$app->user->checkPermission('deleteFilesAndFoldersInVolume:' . $volume->uid)) {
+                    $event->actions[] = new SafeDeleteAssets();
+                }
             }
-        );
+        });
+
+//        Event::on(
+//            UrlManager::class,
+//            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+//            function (RegisterUrlRulesEvent $event) {
+//                $event->rules['cpActionTrigger1'] = 'safedelete/safe-delete/do-something';
+//            }
+//        );
     }
 
     // Protected Methods

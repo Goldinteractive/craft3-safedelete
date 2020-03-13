@@ -22,5 +22,29 @@ use craft\base\Component;
  */
 class SafeDeleteService extends Component
 {
+    public function getUsagesFor($ids, $type)
+    {
+        $relations = [];
 
+        foreach ($ids as $id) {
+            switch ($type) {
+                case 'asset':
+                case 'element':
+                    $res = $this->getRelationsForElement($id);
+
+                    if (count($res) > 0) {
+                        $relations[] = $res;
+                    }
+                    break;
+            }
+        }
+
+        return $relations;
+    }
+
+    protected function getRelationsForElement($id)
+    {
+        //todo
+        return [];
+    }
 }

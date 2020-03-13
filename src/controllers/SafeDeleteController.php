@@ -36,4 +36,68 @@ class SafeDeleteController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @return mixed
+     */
+    public function actionTryDelete()
+    {
+        $request = Craft::$app->getRequest();
+        $ids = $request->getParam('ids');
+        $type = $request->getParam('type');
+
+        $settings = SafeDelete::$plugin->getSettings();
+
+        $relations = SafeDelete::$plugin->safeDelete->getUsagesFor($ids, $type);
+
+        if ($relations === null || count($relations) === 0) { // safe to delete
+            return $this->doAction($ids, $type);
+        } else {
+            $html = Craft::$app->view->renderTemplate(
+                'safeDelete/deleteOverlay',
+                ['relations' => $relations, 'allowForceDelete' => (bool)$settings->allowForceDelete]
+            );
+
+            return $this->asJson(
+                [
+                    'html'    => $html,
+                    'success' => true,
+                ]
+            );
+        }
+    }
+
+    public function actionForceDelete()
+    {
+        //todo
+    }
+
+    public function actionDeleteUnreferenced()
+    {
+        //todo
+    }
+
+    protected function doAction($ids, $type)
+    {
+        $message = '';
+
+        switch ($type) {
+            case 'asset':
+                $message = Craft::t('safedelete', 'Assets deleted.');
+                break;
+            case 'element':
+                $message = Craft::t('safedelete', 'Elements deleted.');
+                break;
+        }
+
+        foreach ($ids as $id) {
+            Craft::$app->elements->deleteElementById($id);
+        }
+
+        return $this->asJson(
+            [
+                'success' => true,
+                'message' => $message,
+            ]
+        );
+    }
 }
