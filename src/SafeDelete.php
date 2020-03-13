@@ -10,11 +10,16 @@
 
 namespace goldinteractive\safedelete;
 
+use craft\base\Element;
 use craft\base\Volume;
 use craft\elements\Asset;
+use craft\elements\Category;
+use craft\elements\Entry;
 use craft\events\RegisterElementActionsEvent;
+use craft\models\Section;
 use goldinteractive\safedelete\assetbundles\safedelete\SafedeleteAsset;
 use goldinteractive\safedelete\elements\actions\SafeDeleteAssets;
+use goldinteractive\safedelete\elements\actions\SafeDeleteElements;
 use goldinteractive\safedelete\services\SafeDeleteService;
 use goldinteractive\safedelete\models\Settings;
 
@@ -85,13 +90,46 @@ class SafeDelete extends Plugin
             }
         });
 
-//        Event::on(
-//            UrlManager::class,
-//            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-//            function (RegisterUrlRulesEvent $event) {
-//                $event->rules['cpActionTrigger1'] = 'safedelete/safe-delete/do-something';
-//            }
-//        );
+        // todo entry & category dont work yet
+
+        Event::on(Entry::class, Entry::EVENT_REGISTER_ACTIONS, function (RegisterElementActionsEvent $event) {
+            $source = $event->source;
+            $section = null;
+
+            if ($source !== '*' && $source !== 'singles') {
+                if (preg_match('/^section:(\d+)$/', $source, $matches)) {
+                    $section = Craft::$app->getSections()->getSectionById($matches[1]);
+
+                } else if (preg_match('/^section:(.+)$/', $source, $matches)) {
+                    $section = Craft::$app->getSections()->getSectionByUid($matches[1]);
+                }
+
+                $userSession = Craft::$app->getUser();
+
+                if ($section !== null &&
+                    $userSession->checkPermission('deleteEntries:' . $section->uid) &&
+                    $userSession->checkPermission('deletePeerEntries:' . $section->uid)
+                ) {
+                    $actions[] = new SafeDeleteElements();
+                }
+            }
+        });
+
+        Event::on(Category::class, Category::EVENT_REGISTER_ACTIONS, function (RegisterElementActionsEvent $event) {
+            $source = $event->source;
+
+            // Get the group we need to check permissions on
+            if (preg_match('/^group:(\d+)$/', $source, $matches)) {
+                $group = Craft::$app->getCategories()->getGroupById($matches[1]);
+            } else if (preg_match('/^group:(.+)$/', $source, $matches)) {
+                $group = Craft::$app->getCategories()->getGroupByUid($matches[1]);
+            }
+
+            if (!empty($group)) {
+                // Delete
+                $actions[] = new SafeDeleteElements();
+            }
+        });
     }
 
     // Protected Methods
