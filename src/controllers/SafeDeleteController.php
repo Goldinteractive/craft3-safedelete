@@ -22,7 +22,6 @@ use craft\web\Controller;
  */
 class SafeDeleteController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -42,8 +41,10 @@ class SafeDeleteController extends Controller
     public function actionTryDelete()
     {
         $request = Craft::$app->getRequest();
-        $ids = $request->getParam('ids');
+        $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
+
+        $this->validateParams($ids, $type);
 
         $settings = SafeDelete::$plugin->getSettings();
 
@@ -69,8 +70,10 @@ class SafeDeleteController extends Controller
     public function actionForceDelete()
     {
         $request = Craft::$app->getRequest();
-        $ids = $request->getParam('ids');
+        $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
+
+        $this->validateParams($ids, $type);
 
         $settings = SafeDelete::$plugin->getSettings();
 
@@ -89,8 +92,10 @@ class SafeDeleteController extends Controller
     public function actionDeleteUnreferenced()
     {
         $request = Craft::$app->getRequest();
-        $ids = $request->getParam('ids');
+        $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
+
+        $this->validateParams($ids, $type);
 
         $ids = SafeDelete::$plugin->safeDelete->filterReferencedIds($ids, $type);
 
@@ -118,6 +123,27 @@ class SafeDeleteController extends Controller
             [
                 'success' => true,
                 'message' => $message,
+            ]
+        );
+    }
+
+    /**
+     * Very very basic validation
+     *
+     * @param $ids
+     * @param $type
+     * @return void|\yii\web\Response
+     */
+    protected function validateParams($ids, $type)
+    {
+        if (is_array($ids) && is_string($type)) {
+            return;
+        }
+
+        return $this->asJson(
+            [
+                'success' => false,
+                'message' => Craft::t('safedelete', 'Bad parameters.'),
             ]
         );
     }
