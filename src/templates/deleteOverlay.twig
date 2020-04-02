@@ -9,6 +9,9 @@
                         <thead>
                         <tr>
                             <th scope="col">
+                                {{ 'Site'|t }}
+                            </th>
+                            <th scope="col">
                                 {{ 'Source Element'|t }}
                             </th>
                             <th scope="col">
@@ -30,6 +33,7 @@
                             {% for sourceElement in elements %}
                                 {# todo strip namespaces from elementtypes #}
                                 <tr>
+                                    <td>{{ sourceElement.site }}</td>
                                     <td>{{ sourceElement.sourceElement.title }}</td>
                                     {% if sourceElement.parent is not null %}
                                         <td>{{ craft.app.elements.getElementTypeById(sourceElement.parent.id)|t }}

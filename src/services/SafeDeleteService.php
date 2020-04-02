@@ -85,61 +85,69 @@ class SafeDeleteService extends Component
             ['targetId' => $id]
         )->all();
 
+        $sites = Craft::$app->sites->getAllSites();
+
         foreach ($results as $relation) {
             $fieldId = $relation['fieldId'];
             $sourceId = $relation['sourceId'];
 
             $field = Craft::$app->fields->getFieldById($fieldId);
-            $element = Craft::$app->elements->getElementById($sourceId);
 
-            if ($element !== null) {
-                $elementType = Craft::$app->elements->getElementTypeById($sourceId);
-                $parent = null;
-                $editUrl = null;
+            foreach ($sites as $site) {
+                $siteId = $site->id;
 
-                switch ($elementType) {
-                    case 'craft\elements\MatrixBlock':
-                        $matrix = Craft::$app->matrix->getBlockById($sourceId);
-                        $parent = $this->getTopOwner($matrix);
-                        break;
-                    case 'benf\neo\elements\Block':
-                        $neo = \benf\neo\Plugin::$plugin->blocks->getBlockById($sourceId);
-                        $parent = $this->getTopOwner($neo);
-                        break;
-                }
+                $element = Craft::$app->elements->getElementById($sourceId, null, $siteId);
 
-                // if the element is referenced but not used in any entry, continue
-                if (($elementType == 'craft\elements\MatrixBlock' || $elementType == 'benf\neo\elements\Block') && !$parent) {
-                    continue;
-                }
+                if ($element !== null) {
+                    $elementType = Craft::$app->elements->getElementTypeById($sourceId);
+                    $parent = null;
+                    $editUrl = null;
 
-                $edit = $element;
-
-                if ($parent !== null) {
-                    $edit = $parent;
-                }
-
-                $elementType = Craft::$app->elements->getElementTypeById($edit->id);
-
-                if ($elementType) {
                     switch ($elementType) {
-                        case Entry::class:
-                            if ($edit->getIsRevision()) {
-                                // ignore revisions
-                                continue 2;
-                            }
-
-                            $editUrl = $edit->getCpEditUrl();
+                        case 'craft\elements\MatrixBlock':
+                            $matrix = Craft::$app->matrix->getBlockById($sourceId, $siteId);
+                            $parent = $this->getTopOwner($matrix);
+                            break;
+                        case 'benf\neo\elements\Block':
+                            $neo = \benf\neo\Plugin::$plugin->blocks->getBlockById($sourceId, $siteId);
+                            $parent = $this->getTopOwner($neo);
                             break;
                     }
 
-                    $arrReturn[] = [
-                        'sourceElement' => $sourceElement,
-                        'field'         => $field,
-                        'element'       => $element,
-                        'parent'        => $parent,
-                        'editUrl'       => $editUrl,
-                    ];
+                    // if the element is referenced but not used in any entry, continue
+                    if (($elementType == 'craft\elements\MatrixBlock' || $elementType == 'benf\neo\elements\Block') && !$parent) {
+                        continue;
+                    }
+
+                    $edit = $element;
+
+                    if ($parent !== null) {
+                        $edit = $parent;
+                    }
+
+                    $elementType = Craft::$app->elements->getElementTypeById($edit->id);
+
+                    if ($elementType) {
+                        switch ($elementType) {
+                            case Entry::class:
+                                if ($edit->getIsRevision()) {
+                                    // ignore this result
+                                    continue 3;
+                                }
+
+                                $editUrl = $edit->getCpEditUrl();
+                                break;
+                        }
+
+                        $arrReturn[] = [
+                            'sourceElement' => $sourceElement,
+                            'field'         => $field,
+                            'element'       => $element,
+                            'parent'        => $parent,
+                            'editUrl'       => $editUrl,
+                            'site'          => $site->name,
+                        ];
+                    }
                 }
             }
         }
