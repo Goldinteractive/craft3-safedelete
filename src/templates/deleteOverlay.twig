@@ -1,3 +1,12 @@
+{% macro outputElementType(id) %}
+{% spaceless %}
+    {% set type = craft.app.elements.getElementTypeById(id)|split('\\') %}
+    {{ type|last }}
+{% endspaceless %}
+{% endmacro %}
+
+{% import _self as macros %}
+
 <div class="body" style="overflow: scroll; max-height: 100%;">
     <form method="post">
         <div class="content">
@@ -31,13 +40,12 @@
                         <tbody>
                         {% for elements in relations %}
                             {% for sourceElement in elements %}
-                                {# todo strip namespaces from elementtypes #}
                                 <tr>
                                     <td>{{ sourceElement.site }}</td>
                                     <td>{{ sourceElement.sourceElement.title }}</td>
                                     {% if sourceElement.parent is not null %}
-                                        <td>{{ craft.app.elements.getElementTypeById(sourceElement.parent.id)|t }}
-                                            ({{ craft.app.elements.getElementTypeById(sourceElement.element.id)|t }})
+                                        <td>{{ macros.outputElementType(sourceElement.parent.id)|t }}
+                                            ({{ macros.outputElementType(sourceElement.element.id)|t }})
                                         </td>
                                         <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
                                         <td>
@@ -50,7 +58,7 @@
                                         </td>
                                         <td>{{ sourceElement.parent.slug }}</td>
                                     {% else %}
-                                        <td>{{ craft.app.elements.getElementTypeById(sourceElement.element.id)|t }}</td>
+                                        <td>{{ macros.outputElementType(sourceElement.element.id)|t }}</td>
                                         <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
                                         <td>
                                             {% if sourceElement.editUrl is not null %}
