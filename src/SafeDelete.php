@@ -90,8 +90,6 @@ class SafeDelete extends Plugin
             }
         });
 
-        // todo entry & category dont work yet
-
         Event::on(Entry::class, Entry::EVENT_REGISTER_ACTIONS, function (RegisterElementActionsEvent $event) {
             $source = $event->source;
             $section = null;
@@ -110,7 +108,7 @@ class SafeDelete extends Plugin
                     $userSession->checkPermission('deleteEntries:' . $section->uid) &&
                     $userSession->checkPermission('deletePeerEntries:' . $section->uid)
                 ) {
-                    $actions[] = new SafeDeleteElements();
+                    $event->actions[] = new SafeDeleteElements();
                 }
             }
         });
@@ -127,7 +125,7 @@ class SafeDelete extends Plugin
 
             if (!empty($group)) {
                 // Delete
-                $actions[] = new SafeDeleteElements();
+                $event->actions[] = new SafeDeleteElements();
             }
         });
     }
