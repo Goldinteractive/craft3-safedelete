@@ -124,6 +124,11 @@ class SafeDeleteService extends Component
                 if ($elementType) {
                     switch ($elementType) {
                         case Entry::class:
+                            if ($edit->getIsRevision()) {
+                                // ignore revisions
+                                continue 2;
+                            }
+
                             $editUrl = $edit->getCpEditUrl();
                             break;
                     }
