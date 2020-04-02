@@ -11,6 +11,7 @@
 namespace goldinteractive\safedelete\services;
 
 use craft\db\Query;
+use craft\elements\Entry;
 use goldinteractive\safedelete\SafeDelete;
 
 use Craft;
@@ -120,19 +121,21 @@ class SafeDeleteService extends Component
 
                 $elementType = Craft::$app->elements->getElementTypeById($edit->id);
 
-                switch ($elementType) {
-                    case 'Entry':
-                        $editUrl = '/entries/' . $edit->section->handle . '/' . $edit->id;
-                        break;
-                }
+                if ($elementType) {
+                    switch ($elementType) {
+                        case Entry::class:
+                            $editUrl = $edit->getCpEditUrl();
+                            break;
+                    }
 
-                $arrReturn[] = [
-                    'sourceElement' => $sourceElement,
-                    'field'         => $field,
-                    'element'       => $element,
-                    'parent'        => $parent,
-                    'editUrl'       => $editUrl,
-                ];
+                    $arrReturn[] = [
+                        'sourceElement' => $sourceElement,
+                        'field'         => $field,
+                        'element'       => $element,
+                        'parent'        => $parent,
+                        'editUrl'       => $editUrl,
+                    ];
+                }
             }
         }
 

@@ -38,7 +38,7 @@
                                         <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
                                         <td>
                                             {% if sourceElement.editUrl is not null %}
-                                                <a href="{{ cpUrl()~sourceElement.editUrl }}"
+                                                <a href="{{ sourceElement.editUrl }}"
                                                    target="_blank">{{ sourceElement.parent.title }}</a>
                                             {% else %}
                                                 {{ sourceElement.parent.title }}
@@ -50,7 +50,7 @@
                                         <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
                                         <td>
                                             {% if sourceElement.editUrl is not null %}
-                                                <a href="{{ cpUrl()~sourceElement.editUrl }}"
+                                                <a href="{{ sourceElement.editUrl }}"
                                                    target="_blank">{{ sourceElement.element.title }}</a>
                                             {% else %}
                                                 {{ sourceElement.element.title }}
