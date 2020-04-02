@@ -24,6 +24,11 @@ use craft\base\Component;
  */
 class SafeDeleteService extends Component
 {
+    /**
+     * @param array  $ids
+     * @param string $type
+     * @return array
+     */
     public function getUsagesFor(array $ids, string $type)
     {
         $relations = [];
@@ -46,10 +51,10 @@ class SafeDeleteService extends Component
 
     /**
      * Returns an array only with ids which are
-     * not referneced and safe to delete.
+     * not referenced and safe to delete.
      *
-     * @param $ids
-     * @param $type
+     * @param array  $ids
+     * @param string $type
      * @return array
      */
     public function filterReferencedIds(array $ids, string $type)
