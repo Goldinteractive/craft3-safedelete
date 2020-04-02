@@ -24,7 +24,7 @@ use craft\base\Component;
  */
 class SafeDeleteService extends Component
 {
-    public function getUsagesFor($ids, $type)
+    public function getUsagesFor(array $ids, string $type)
     {
         $relations = [];
 
@@ -52,7 +52,7 @@ class SafeDeleteService extends Component
      * @param $type
      * @return array
      */
-    public function filterReferencedIds($ids, $type)
+    public function filterReferencedIds(array $ids, string $type)
     {
         $arrIds = [];
         $arrRet = [];
@@ -74,8 +74,14 @@ class SafeDeleteService extends Component
         return $arrRet;
     }
 
-    protected function getRelationsForElement($id)
+    /**
+     * @param string $id
+     * @param int    $limit the max amount of relations the function will return (invalid relations will be ignored by the count)
+     * @return array
+     */
+    protected function getRelationsForElement(string $id, int $limit = 50) // todo lower the limit and implement hasMore return
     {
+        $count = 0;
         $arrReturn = [];
 
         $sourceElement = Craft::$app->elements->getElementById($id);
@@ -88,6 +94,10 @@ class SafeDeleteService extends Component
         $sites = Craft::$app->sites->getAllSites();
 
         foreach ($results as $relation) {
+            if ($count >= $limit) {
+                break;
+            }
+
             $fieldId = $relation['fieldId'];
             $sourceId = $relation['sourceId'];
 
@@ -147,6 +157,8 @@ class SafeDeleteService extends Component
                             'editUrl'       => $editUrl,
                             'site'          => $site->name,
                         ];
+
+                        $count++;
                     }
                 }
             }
