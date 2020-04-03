@@ -84,19 +84,123 @@ class SafeDeleteService extends Component
      * @param int    $limit the max amount of relations the function will return (invalid relations will be ignored by the count)
      * @return array
      */
-    protected function getRelationsForElement(string $id, int $limit = 50) // todo lower the limit and implement hasMore return
+    protected function getRelationsForElement(string $id, int $limit = 5) // todo implement hasMore return
     {
         $count = 0;
         $arrReturn = [];
 
         $sourceElement = Craft::$app->elements->getElementById($id);
+        $sites = Craft::$app->sites->getAllSites();
 
         $results = (new Query())->select('fieldId, sourceId')->from('relations')->where(
             'targetId = :targetId',
             ['targetId' => $id]
         )->all();
 
-        $sites = Craft::$app->sites->getAllSites();
+        $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
+        $arrReturn = array_merge($arrReturn, $search['results']);
+        $count = $search['count'];
+
+        // continue with custom searches for relations
+        if ($count < $limit) {
+            // support for fruitstudios/linkit plugin
+            if (Craft::$app->plugins->isPluginEnabled('linkit')) {
+                // todo move this stuff to own function
+
+                // we cannot really limit this query, as we dont know if we have matches here
+                // its effective in the foreach below though
+                // maybe optimize this in a future version
+                $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField');
+
+                foreach ($customResults as $fieldResults) {
+                    $fieldId = $fieldResults['field']['id'];
+
+                    foreach ($fieldResults['content'] as $content) {
+                        if ($count >= $limit) {
+                            break 2;
+                        }
+
+                        $fieldValue = $content['field'];
+
+                        // the value goes like this:  {"type":"fruitstudios\\linkit\\models\\Asset","value":"20","customText":"...","target":"1"}
+                        $decoded = json_decode($fieldValue, true);
+                        $possibleTypes = [
+                            'fruitstudios\\linkit\\models\\Asset',
+                            'fruitstudios\\linkit\\models\\Entry',
+                        ];
+
+                        if (
+                            !is_array($decoded) ||
+                            !isset($decoded['type']) ||
+                            !isset($decoded['value']) ||
+                            !in_array($decoded['type'], $possibleTypes) ||
+                            $decoded['value'] !== $id
+                        ) {
+                            continue;
+                        }
+
+                        // we have a match!
+
+                        $site = Craft::$app->sites->getSiteById($content['siteId']);
+
+                        if ($site !== null) {
+                            // do same as above but with modified parameters
+
+                            $results = [
+                                [
+                                    'fieldId'  => $fieldId,
+                                    'sourceId' => $content['elementId'],
+                                ],
+                            ];
+
+                            $sites = [$site];
+
+                            $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
+                            $arrReturn = array_merge($arrReturn, $search['results']);
+                            $count = $search['count'];
+                        }
+                    }
+                }
+            }
+        }
+
+        return $arrReturn;
+    }
+
+    /**
+     * Get the top owner of the given element
+     *
+     * @param $element
+     * @return mixed
+     */
+    private function getTopOwner($element)
+    {
+        if (!method_exists($element, 'getOwner')) {
+            return null;
+        }
+
+        $parent = $element->getOwner();
+
+        while ($parent) {
+            if (method_exists($parent, 'getOwner')) {
+                $parent = $parent->getOwner();
+            } else {
+                // getOwner() is not possible anymore
+                break;
+            }
+        }
+
+        return $parent;
+    }
+
+    private function searchForElementRelations(
+        int $limit,
+        int $count,
+        $sourceElement,
+        array $sites,
+        array $results
+    ) {
+        $arrReturn = [];
 
         foreach ($results as $relation) {
             if ($count >= $limit) {
@@ -169,32 +273,9 @@ class SafeDeleteService extends Component
             }
         }
 
-        return $arrReturn;
-    }
-
-    /**
-     * Get the top owner of the given element
-     *
-     * @param $element
-     * @return mixed
-     */
-    private function getTopOwner($element)
-    {
-        if (!method_exists($element, 'getOwner')) {
-            return null;
-        }
-
-        $parent = $element->getOwner();
-
-        while ($parent) {
-            if (method_exists($parent, 'getOwner')) {
-                $parent = $parent->getOwner();
-            } else {
-                // getOwner() is not possible anymore
-                break;
-            }
-        }
-
-        return $parent;
+        return [
+            'count'   => $count,
+            'results' => $arrReturn,
+        ];
     }
 }

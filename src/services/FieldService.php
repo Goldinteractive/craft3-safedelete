@@ -82,6 +82,7 @@ class FieldService extends Component
         $query = (new Query())
             ->select([
                 'elementId',
+                'siteId',
                 $fullName,
             ])
             ->from(['{{%content}} content'])
@@ -97,6 +98,7 @@ class FieldService extends Component
         return array_map(function ($result) use ($fullName) {
             return [
                 'elementId' => $result['elementId'],
+                'siteId'    => $result['siteId'],
                 'field'     => $result[$fullName],
             ];
         }, $results);
