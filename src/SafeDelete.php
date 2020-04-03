@@ -20,13 +20,12 @@ use craft\models\Section;
 use goldinteractive\safedelete\assetbundles\safedelete\SafedeleteAsset;
 use goldinteractive\safedelete\elements\actions\SafeDeleteAssets;
 use goldinteractive\safedelete\elements\actions\SafeDeleteElements;
+use goldinteractive\safedelete\services\FieldService;
 use goldinteractive\safedelete\services\SafeDeleteService;
 use goldinteractive\safedelete\models\Settings;
 
 use Craft;
 use craft\base\Plugin;
-use craft\web\UrlManager;
-use craft\events\RegisterUrlRulesEvent;
 
 use yii\base\Event;
 
@@ -38,6 +37,7 @@ use yii\base\Event;
  * @since     1.0.0
  *
  * @property  SafeDeleteService $safeDelete
+ * @property  FieldService      $field
  */
 class SafeDelete extends Plugin
 {
@@ -73,6 +73,7 @@ class SafeDelete extends Plugin
         $this->setComponents(
             [
                 'safeDelete' => SafeDeleteService::class,
+                'field'      => FieldService::class,
             ]
         );
 

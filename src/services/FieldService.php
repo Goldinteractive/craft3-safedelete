@@ -39,7 +39,10 @@ class FieldService extends Component
             $content = $this->getContentByColumnName($field['handle']);
 
             if (!empty($content)) {
-                $ret[] = $content;
+                $ret[] = [
+                    'field'   => $field,
+                    'content' => $content,
+                ];
             }
         }
 
@@ -78,17 +81,24 @@ class FieldService extends Component
 
         $query = (new Query())
             ->select([
+                'elementId',
                 $fullName,
             ])
             ->from(['{{%content}} content'])
             ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'');
 
-        $result = $query->all();
+        $results = $query->all();
 
-        if (empty($result)) {
-            return $result;
+        if (empty($results)) {
+            return $results;
         }
 
-        return array_column($result, $fullName);
+        // rename the custom field name to just "field"
+        return array_map(function ($result) use ($fullName) {
+            return [
+                'elementId' => $result['elementId'],
+                'field'     => $result[$fullName],
+            ];
+        }, $results);
     }
 }
