@@ -240,12 +240,12 @@ class SafeDeleteService extends Component
         $sourceElement
     ) {
         $arrReturn = [];
+        $id = $sourceElement->id;
 
-        // we cannot really limit this query, as we dont know if we have matches here
-        // its effective in the foreach below though
-        // maybe optimize this in a future version
+        // the value goes like this:  {"type":"fruitstudios\\linkit\\models\\Asset","value":"20","customText":"...","target":"1"}
+        $filterValue = '\'%"value":"' . $id . '"%\'';
 
-        $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField');
+        $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField', $filterValue, true);
 
         foreach ($customResults as $fieldResults) {
             $fieldId = $fieldResults['field']['id'];
@@ -257,7 +257,6 @@ class SafeDeleteService extends Component
 
                 $fieldValue = $content['field'];
 
-                // the value goes like this:  {"type":"fruitstudios\\linkit\\models\\Asset","value":"20","customText":"...","target":"1"}
                 $decoded = json_decode($fieldValue, true);
                 $possibleTypes = [
                     'fruitstudios\\linkit\\models\\Asset',
@@ -269,7 +268,7 @@ class SafeDeleteService extends Component
                     !isset($decoded['type']) ||
                     !isset($decoded['value']) ||
                     !in_array($decoded['type'], $possibleTypes) ||
-                    $decoded['value'] !== $sourceElement->id
+                    $decoded['value'] !== $id
                 ) {
                     continue;
                 }
@@ -296,7 +295,6 @@ class SafeDeleteService extends Component
                 }
             }
         }
-
 
         return [
             'count'   => $count,

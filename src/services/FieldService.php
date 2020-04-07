@@ -26,17 +26,18 @@ class FieldService extends Component
      * Get all field values from all fields with the given field type
      *
      * @param string $fieldType
+     * @param string $filterValue the value the contents field_myfield column should have
+     * @param bool   $fuzzySearch
      * @return array
-     * @throws \yii\base\ExitException
      */
-    public function getAllFieldValuesFromFieldType(string $fieldType)
+    public function getAllFieldValuesFromFieldType(string $fieldType, string $filterValue = '', $fuzzySearch = false)
     {
         $ret = [];
 
         $fields = $this->getFieldsByFieldType($fieldType);
 
         foreach ($fields as $field) {
-            $content = $this->getContentByColumnName($field['handle']);
+            $content = $this->getContentByColumnName($field['handle'], $filterValue, $fuzzySearch);
 
             if (!empty($content)) {
                 $ret[] = [
@@ -71,7 +72,7 @@ class FieldService extends Component
         return $query->all();
     }
 
-    private function getContentByColumnName(string $columnName)
+    private function getContentByColumnName(string $columnName, string $filterValue = '', bool $fuzzySearch = false)
     {
         // default field prefix, it could be that the field has another prefix
         // maybe support other prefixes in future versions
@@ -87,6 +88,15 @@ class FieldService extends Component
             ])
             ->from(['{{%content}} content'])
             ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'');
+
+        if (!empty($filterValue)) {
+            if ($fuzzySearch) {
+                $query->andWhere($fullName . ' LIKE ' . $filterValue);
+            } else {
+                $query->andWhere($fullName . ' = ' . $filterValue);
+            }
+
+        }
 
         $results = $query->all();
 
