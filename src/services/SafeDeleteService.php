@@ -16,6 +16,7 @@ use goldinteractive\safedelete\SafeDelete;
 
 use Craft;
 use craft\base\Component;
+use yii\base\InvalidConfigException;
 
 /**
  * @author    Goldinteractive
@@ -110,6 +111,7 @@ class SafeDeleteService extends Component
                 // we cannot really limit this query, as we dont know if we have matches here
                 // its effective in the foreach below though
                 // maybe optimize this in a future version
+
                 $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField');
 
                 foreach ($customResults as $fieldResults) {
@@ -179,18 +181,25 @@ class SafeDeleteService extends Component
             return null;
         }
 
-        $parent = $element->getOwner();
+        try {
+            $parent = $element->getOwner();
 
-        while ($parent) {
-            if (method_exists($parent, 'getOwner')) {
-                $parent = $parent->getOwner();
-            } else {
-                // getOwner() is not possible anymore
-                break;
+            while ($parent) {
+                if (method_exists($parent, 'getOwner')) {
+                    $parent = $parent->getOwner();
+                } else {
+                    // getOwner() is not possible anymore
+                    break;
+                }
             }
-        }
 
-        return $parent;
+            return $parent;
+
+        } catch (InvalidConfigException $e) {
+            // catch invalid owner ID exception
+            // this will happen if an entry is deleted but the content for this entry is not
+            return null;
+        }
     }
 
     private function searchForElementRelations(
