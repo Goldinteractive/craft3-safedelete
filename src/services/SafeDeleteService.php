@@ -106,63 +106,9 @@ class SafeDeleteService extends Component
         if ($count < $limit) {
             // support for fruitstudios/linkit plugin
             if (Craft::$app->plugins->isPluginEnabled('linkit')) {
-                // todo move this stuff to own function
-
-                // we cannot really limit this query, as we dont know if we have matches here
-                // its effective in the foreach below though
-                // maybe optimize this in a future version
-
-                $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField');
-
-                foreach ($customResults as $fieldResults) {
-                    $fieldId = $fieldResults['field']['id'];
-
-                    foreach ($fieldResults['content'] as $content) {
-                        if ($count >= $limit) {
-                            break 2;
-                        }
-
-                        $fieldValue = $content['field'];
-
-                        // the value goes like this:  {"type":"fruitstudios\\linkit\\models\\Asset","value":"20","customText":"...","target":"1"}
-                        $decoded = json_decode($fieldValue, true);
-                        $possibleTypes = [
-                            'fruitstudios\\linkit\\models\\Asset',
-                            'fruitstudios\\linkit\\models\\Entry',
-                        ];
-
-                        if (
-                            !is_array($decoded) ||
-                            !isset($decoded['type']) ||
-                            !isset($decoded['value']) ||
-                            !in_array($decoded['type'], $possibleTypes) ||
-                            $decoded['value'] !== $id
-                        ) {
-                            continue;
-                        }
-
-                        // we have a match!
-
-                        $site = Craft::$app->sites->getSiteById($content['siteId']);
-
-                        if ($site !== null) {
-                            // do same as above but with modified parameters
-
-                            $results = [
-                                [
-                                    'fieldId'  => $fieldId,
-                                    'sourceId' => $content['elementId'],
-                                ],
-                            ];
-
-                            $sites = [$site];
-
-                            $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
-                            $arrReturn = array_merge($arrReturn, $search['results']);
-                            $count = $search['count'];
-                        }
-                    }
-                }
+                $search = $this->searchForLinkItPluginRelations($limit, $count, $sourceElement);
+                $arrReturn = array_merge($arrReturn, $search['results']);
+                $count = $search['count'];
             }
         }
 
@@ -281,6 +227,76 @@ class SafeDeleteService extends Component
                 }
             }
         }
+
+        return [
+            'count'   => $count,
+            'results' => $arrReturn,
+        ];
+    }
+
+    private function searchForLinkItPluginRelations(
+        int $limit,
+        int $count,
+        $sourceElement
+    ) {
+        $arrReturn = [];
+
+        // we cannot really limit this query, as we dont know if we have matches here
+        // its effective in the foreach below though
+        // maybe optimize this in a future version
+
+        $customResults = SafeDelete::$plugin->field->getAllFieldValuesFromFieldType('fruitstudios\linkit\fields\LinkitField');
+
+        foreach ($customResults as $fieldResults) {
+            $fieldId = $fieldResults['field']['id'];
+
+            foreach ($fieldResults['content'] as $content) {
+                if ($count >= $limit) {
+                    break 2;
+                }
+
+                $fieldValue = $content['field'];
+
+                // the value goes like this:  {"type":"fruitstudios\\linkit\\models\\Asset","value":"20","customText":"...","target":"1"}
+                $decoded = json_decode($fieldValue, true);
+                $possibleTypes = [
+                    'fruitstudios\\linkit\\models\\Asset',
+                    'fruitstudios\\linkit\\models\\Entry',
+                ];
+
+                if (
+                    !is_array($decoded) ||
+                    !isset($decoded['type']) ||
+                    !isset($decoded['value']) ||
+                    !in_array($decoded['type'], $possibleTypes) ||
+                    $decoded['value'] !== $sourceElement->id
+                ) {
+                    continue;
+                }
+
+                // we have a match!
+
+                $site = Craft::$app->sites->getSiteById($content['siteId']);
+
+                if ($site !== null) {
+                    // do same as above but with modified parameters
+
+                    $results = [
+                        [
+                            'fieldId'  => $fieldId,
+                            'sourceId' => $content['elementId'],
+                        ],
+                    ];
+
+                    $sites = [$site];
+
+                    $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
+                    $arrReturn = array_merge($arrReturn, $search['results']);
+                    $count = $search['count'];
+                }
+            }
+        }
+
 
         return [
             'count'   => $count,
