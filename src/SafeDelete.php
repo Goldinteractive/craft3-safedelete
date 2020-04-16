@@ -10,13 +10,11 @@
 
 namespace goldinteractive\safedelete;
 
-use craft\base\Element;
 use craft\base\Volume;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\events\RegisterElementActionsEvent;
-use craft\models\Section;
 use goldinteractive\safedelete\assetbundles\safedelete\SafedeleteAsset;
 use goldinteractive\safedelete\elements\actions\SafeDeleteAssets;
 use goldinteractive\safedelete\elements\actions\SafeDeleteElements;
@@ -143,7 +141,12 @@ class SafeDelete extends Plugin
     }
 
     /**
-     * @inheritdoc
+     * @return string
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
      */
     protected function settingsHtml(): string
     {
