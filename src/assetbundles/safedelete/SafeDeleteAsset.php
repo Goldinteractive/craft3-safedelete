@@ -19,7 +19,7 @@ use craft\web\assets\cp\CpAsset;
  * @package   Safedelete
  * @since     1.0.0
  */
-class SafedeleteAsset extends AssetBundle
+class SafeDeleteAsset extends AssetBundle
 {
     // Public Methods
     // =========================================================================

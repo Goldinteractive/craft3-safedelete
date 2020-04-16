@@ -15,7 +15,7 @@ use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\events\RegisterElementActionsEvent;
-use goldinteractive\safedelete\assetbundles\safedelete\SafedeleteAsset;
+use goldinteractive\safedelete\assetbundles\safedelete\SafeDeleteAsset;
 use goldinteractive\safedelete\elements\actions\SafeDeleteAssets;
 use goldinteractive\safedelete\elements\actions\SafeDeleteElements;
 use goldinteractive\safedelete\services\FieldService;
@@ -150,7 +150,7 @@ class SafeDelete extends Plugin
      */
     protected function settingsHtml(): string
     {
-        Craft::$app->getView()->registerAssetBundle(SafedeleteAsset::class);
+        Craft::$app->getView()->registerAssetBundle(SafeDeleteAsset::class);
 
         return Craft::$app->view->renderTemplate(
             'safedelete/settings',
