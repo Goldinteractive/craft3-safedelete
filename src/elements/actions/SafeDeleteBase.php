@@ -32,18 +32,9 @@ abstract class SafeDeleteBase extends ElementAction
      */
     public function getTriggerHtml()
     {
-        $settings = SafeDelete::$plugin->getSettings();
         $confirmMessage = $this->getConfirmationMessage();
         $deletionType = $this->getDeletionType();
-        $originalAction = $this->getOriginalAction();
         $deletionHandle = $this->getDeletionHandle();
-        $hideDefaultDeleteAction = $settings->hideDefaultDeleteAction ? 'true' : 'false';
-
-        // backslashes get escaped in html with 1 slash and a backslash must be
-        // escaped by 2 backslashes for the selector, so we actually need 4 backslashes everywhere
-        $originalAction = str_replace('\\','\\\\\\\\',$originalAction);
-
-        //todo remove of the original action is not working yet, we call the .remove() too soon
 
         $js = <<<EOT
 (function()
@@ -105,11 +96,6 @@ abstract class SafeDeleteBase extends ElementAction
 		    }
 		}
 	});
-	
-	//remove default delete
-	if($hideDefaultDeleteAction) {
-		 $('[data-action=$originalAction').remove();
-	}
 })();
 EOT;
 

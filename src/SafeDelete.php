@@ -11,6 +11,7 @@
 namespace goldinteractive\safedelete;
 
 use craft\base\Volume;
+use craft\elements\actions\Delete;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
@@ -84,6 +85,19 @@ class SafeDelete extends Plugin
                 $volume = $folder->getVolume();
 
                 if (Craft::$app->user->checkPermission('deleteFilesAndFoldersInVolume:' . $volume->uid)) {
+                    $settings = SafeDelete::$plugin->getSettings();
+                    if($settings->hideDefaultDeleteAction) {
+                        $actions = [];
+
+                        foreach ($event->actions as $action) {
+                            if($action !== 'craft\elements\actions\DeleteAssets') {
+                                $actions[] = $action;
+                            }
+                        }
+
+                        $event->actions = $actions;
+                    }
+
                     $event->actions[] = new SafeDeleteAssets();
                 }
             }
@@ -107,6 +121,19 @@ class SafeDelete extends Plugin
                     $userSession->checkPermission('deleteEntries:' . $section->uid) &&
                     $userSession->checkPermission('deletePeerEntries:' . $section->uid)
                 ) {
+                    $settings = SafeDelete::$plugin->getSettings();
+                    if($settings->hideDefaultDeleteAction) {
+                        $actions = [];
+
+                        foreach ($event->actions as $action) {
+                            if(! $action instanceof Delete) {
+                                $actions[] = $action;
+                            }
+                        }
+
+                        $event->actions = $actions;
+                    }
+
                     $event->actions[] = new SafeDeleteElements();
                 }
             }
@@ -123,7 +150,19 @@ class SafeDelete extends Plugin
             }
 
             if (!empty($group)) {
-                // Delete
+                $settings = SafeDelete::$plugin->getSettings();
+                if($settings->hideDefaultDeleteAction) {
+                    $actions = [];
+
+                    foreach ($event->actions as $action) {
+                        if(! $action instanceof Delete) {
+                            $actions[] = $action;
+                        }
+                    }
+
+                    $event->actions = $actions;
+                }
+
                 $event->actions[] = new SafeDeleteElements();
             }
         });
