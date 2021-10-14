@@ -37,7 +37,8 @@ class FieldService extends Component
         $fields = $this->getFieldsByFieldType($fieldType);
 
         foreach ($fields as $field) {
-            $content = $this->getContentByColumnName($field['handle'], $filterValue, $fuzzySearch);
+            $columnName = $field['columnSuffix'] ? $field['handle'] .'_'. $field['columnSuffix'] : $field['handle'];
+            $content = $this->getContentByColumnName($columnName, $filterValue, $fuzzySearch);
 
             if (!empty($content)) {
                 $ret[] = [
@@ -62,6 +63,7 @@ class FieldService extends Component
                 'handle',
                 'context',
                 'type',
+                'columnSuffix'
             ])
             ->from(['{{%fields}} fields'])
             ->where([
