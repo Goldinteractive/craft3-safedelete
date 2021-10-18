@@ -32,8 +32,19 @@ class SafeDeleteController extends Controller
      */
     protected $allowAnonymous = false;
 
+    /**
+     * @var SafeDelete
+     */
+    protected $plugin;
+
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        parent::init();
+        $this->plugin = SafeDelete::getInstance();
+    }
 
     /**
      * @return mixed
@@ -46,16 +57,14 @@ class SafeDeleteController extends Controller
 
         $this->validateParams($ids, $type);
 
-        $settings = SafeDelete::$plugin->getSettings();
+        $relations = $this->plugin->safeDelete->getUsagesFor($ids, $type);
 
-        $relations = SafeDelete::$plugin->safeDelete->getUsagesFor($ids, $type);
-
-        if ($relations === null || count($relations) === 0) { // safe to delete
-            return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
+        if (count($relations) === 0) { // safe to delete
+            return $this->plugin->safeDelete->delete($ids, $type);
         } else {
             $html = Craft::$app->view->renderTemplate(
                 'safeDelete/deleteOverlay',
-                ['relations' => $relations, 'allowForceDelete' => (bool)$settings->allowForceDelete]
+                ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
             );
 
             return $this->asJson(
@@ -75,11 +84,9 @@ class SafeDeleteController extends Controller
 
         $this->validateParams($ids, $type);
 
-        $settings = SafeDelete::$plugin->getSettings();
+        if ($this->plugin->settings->allowForceDelete) {
 
-        if ($settings->allowForceDelete) {
-
-            return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
+            return $this->plugin->safeDelete->delete($ids, $type);
         }
 
         return $this->asJson(
@@ -97,9 +104,9 @@ class SafeDeleteController extends Controller
 
         $this->validateParams($ids, $type);
 
-        $ids = SafeDelete::$plugin->safeDelete->filterReferencedIds($ids, $type);
+        $ids = $this->plugin->safeDelete->filterReferencedIds($ids, $type);
 
-        return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
+        return $this->plugin->safeDelete->delete($ids, $type);
     }
 
     /**

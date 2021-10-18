@@ -31,10 +31,8 @@ class SafeDeleteService extends Component
      * @param string $type
      * @return array
      */
-    public function getUsagesFor(array $ids, string $type)
+    public function getUsagesFor(array $ids, string $type) : array
     {
-        $relations = [];
-
         foreach ($ids as $id) {
             switch ($type) {
                 case 'asset':
@@ -48,7 +46,7 @@ class SafeDeleteService extends Component
             }
         }
 
-        return $relations;
+        return $relations ?? [];
     }
 
     /**
@@ -59,7 +57,7 @@ class SafeDeleteService extends Component
      * @param string $type
      * @return array
      */
-    public function filterReferencedIds(array $ids, string $type)
+    public function filterReferencedIds(array $ids, string $type) : array
     {
         $arrIds = [];
         $arrRet = [];
@@ -312,7 +310,7 @@ class SafeDeleteService extends Component
      * @throws \Throwable
      * @return string
      */
-    public function doAction(array $ids, string $type) : string
+    public function delete(array $ids, string $type) : string
     {
         $message = '';
 
