@@ -303,7 +303,15 @@ class SafeDeleteService extends Component
         ];
     }
 
-    public function doAction($ids, $type)
+    /**
+     * Delete elements by type
+     * 
+     * @param array $ids
+     * @param string $type
+     * 
+     * @return string
+     */
+    public function doAction(array $ids, string $type) : string
     {
         $message = '';
 
