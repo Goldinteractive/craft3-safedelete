@@ -102,31 +102,6 @@ class SafeDeleteController extends Controller
         return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
     }
 
-    protected function doAction($ids, $type)
-    {
-        $message = '';
-
-        switch ($type) {
-            case 'asset':
-                $message = Craft::t('safedelete', 'Assets deleted.');
-                break;
-            case 'element':
-                $message = Craft::t('safedelete', 'Elements deleted.');
-                break;
-        }
-
-        foreach ($ids as $id) {
-            Craft::$app->elements->deleteElementById($id);
-        }
-
-        return $this->asJson(
-            [
-                'success' => true,
-                'message' => $message,
-            ]
-        );
-    }
-
     /**
      * Very very basic validation
      *
