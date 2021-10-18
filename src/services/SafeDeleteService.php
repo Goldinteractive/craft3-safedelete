@@ -17,6 +17,7 @@ use goldinteractive\safedelete\SafeDelete;
 use Craft;
 use craft\base\Component;
 use yii\base\InvalidConfigException;
+use craft\helpers\Json;
 
 /**
  * @author    Goldinteractive
@@ -300,5 +301,30 @@ class SafeDeleteService extends Component
             'count'   => $count,
             'results' => $arrReturn,
         ];
+    }
+
+    public function doAction($ids, $type)
+    {
+        $message = '';
+
+        switch ($type) {
+            case 'asset':
+                $message = Craft::t('safedelete', 'Assets deleted.');
+                break;
+            case 'element':
+                $message = Craft::t('safedelete', 'Elements deleted.');
+                break;
+        }
+
+        foreach ($ids as $id) {
+            Craft::$app->elements->deleteElementById($id);
+        }
+
+        return Json::encode(
+            [
+                'success' => true,
+                'message' => $message,
+            ]
+        );
     }
 }

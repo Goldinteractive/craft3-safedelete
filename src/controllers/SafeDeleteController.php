@@ -51,7 +51,7 @@ class SafeDeleteController extends Controller
         $relations = SafeDelete::$plugin->safeDelete->getUsagesFor($ids, $type);
 
         if ($relations === null || count($relations) === 0) { // safe to delete
-            return $this->doAction($ids, $type);
+            return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
         } else {
             $html = Craft::$app->view->renderTemplate(
                 'safeDelete/deleteOverlay',
