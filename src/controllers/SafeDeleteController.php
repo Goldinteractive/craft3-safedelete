@@ -79,7 +79,7 @@ class SafeDeleteController extends Controller
 
         if ($settings->allowForceDelete) {
 
-            return $this->doAction($ids, $type);
+            return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
         }
 
         return $this->asJson(
@@ -99,7 +99,7 @@ class SafeDeleteController extends Controller
 
         $ids = SafeDelete::$plugin->safeDelete->filterReferencedIds($ids, $type);
 
-        return $this->doAction($ids, $type);
+        return SafeDelete::$plugin->safeDelete->doAction($ids, $type);
     }
 
     protected function doAction($ids, $type)

@@ -309,6 +309,7 @@ class SafeDeleteService extends Component
      * @param array $ids
      * @param string $type
      * 
+     * @throws \Throwable
      * @return string
      */
     public function doAction(array $ids, string $type) : string
