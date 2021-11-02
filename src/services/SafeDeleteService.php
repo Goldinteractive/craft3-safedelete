@@ -312,26 +312,35 @@ class SafeDeleteService extends Component
      */
     public function delete(array $ids, string $type) : string
     {
-        $message = '';
 
-        switch ($type) {
-            case 'asset':
-                $message = Craft::t('safedelete', 'Assets deleted.');
-                break;
-            case 'element':
-                $message = Craft::t('safedelete', 'Elements deleted.');
-                break;
-        }
-
-        foreach ($ids as $id) {
-            Craft::$app->elements->deleteElementById($id);
-        }
+        $this->deleteElementsByIds($ids);
 
         return Json::encode(
             [
                 'success' => true,
-                'message' => $message,
+                'message' => $this->setMessage($type),
             ]
         );
+    }
+
+    private function deleteElementsByIds(array $ids) : void
+    {
+        foreach ($ids as $id) {
+            Craft::$app->elements->deleteElementById($id);
+        }        
+    }
+
+    private function setMessage(string $type) : string
+    {
+        switch ($type) {
+            case 'asset':
+                $str = 'Assets';
+                break;
+            case 'element':
+                $str = 'Elements';
+                break;
+        }
+
+        return Craft::t('safedelete', $str . ' deleted.');
     }
 }
