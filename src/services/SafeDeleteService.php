@@ -323,6 +323,13 @@ class SafeDeleteService extends Component
         );
     }
 
+    /**
+     * Delete elements by ids
+     * 
+     * @param array $ids
+     * @throws \Throwable
+     * @return void
+     */
     private function deleteElementsByIds(array $ids) : void
     {
         foreach ($ids as $id) {
@@ -330,6 +337,12 @@ class SafeDeleteService extends Component
         }        
     }
 
+    /**
+     * Set response message
+     * 
+     * @param string $type
+     * @return string 
+     */
     private function setMessage(string $type) : string
     {
         switch ($type) {
