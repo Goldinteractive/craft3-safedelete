@@ -27,6 +27,28 @@ use craft\helpers\Json;
 class SafeDeleteService extends Component
 {
     /**
+     * Delete elements by type
+     * 
+     * @param array $ids
+     * @param string $type
+     * 
+     * @throws \Throwable
+     * @return string
+     */
+    public function delete(array $ids, string $type) : string
+    {
+
+        $this->deleteElementsByIds($ids);
+
+        return Json::encode(
+            [
+                'success' => true,
+                'message' => $this->setMessage($type),
+            ]
+        );
+    }
+
+    /**
      * @param array  $ids
      * @param string $type
      * @return array
@@ -299,28 +321,6 @@ class SafeDeleteService extends Component
             'count'   => $count,
             'results' => $arrReturn,
         ];
-    }
-
-    /**
-     * Delete elements by type
-     * 
-     * @param array $ids
-     * @param string $type
-     * 
-     * @throws \Throwable
-     * @return string
-     */
-    public function delete(array $ids, string $type) : string
-    {
-
-        $this->deleteElementsByIds($ids);
-
-        return Json::encode(
-            [
-                'success' => true,
-                'message' => $this->setMessage($type),
-            ]
-        );
     }
 
     /**
