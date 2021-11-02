@@ -61,19 +61,19 @@ class SafeDeleteController extends Controller
 
         if (count($relations) === 0) { // safe to delete
             return $this->plugin->safeDelete->delete($ids, $type);
-        } else {
-            $html = Craft::$app->view->renderTemplate(
-                'safeDelete/deleteOverlay',
-                ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
-            );
+        } 
+        
+        $html = Craft::$app->view->renderTemplate(
+            'safeDelete/deleteOverlay',
+            ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
+        );
 
-            return $this->asJson(
-                [
-                    'html'    => $html,
-                    'success' => true,
-                ]
-            );
-        }
+        return $this->asJson(
+            [
+                'html'    => $html,
+                'success' => true,
+            ]
+        );
     }
 
     public function actionForceDelete()
