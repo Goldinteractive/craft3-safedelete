@@ -47,7 +47,7 @@ class SafeDeleteController extends Controller
 
         $this->validateParams($ids, $type);
 
-        $relations = $plugin->safeDelete->getUsagesFor($ids, $type);
+        $relations = $plugin->safeDelete->getRelations($ids, $type);
 
         if (count($relations) === 0) { // safe to delete
 

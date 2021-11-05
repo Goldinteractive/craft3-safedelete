@@ -45,7 +45,7 @@ class SafeDeleteService extends Component
      * @param string $type
      * @return array
      */
-    public function getUsagesFor(array $ids, string $type) : array
+    public function getRelations(array $ids, string $type) : array
     {
         foreach ($ids as $id) {
             switch ($type) {
