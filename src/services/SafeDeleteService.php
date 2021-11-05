@@ -27,22 +27,6 @@ use craft\helpers\Json;
 class SafeDeleteService extends Component
 {
     /**
-     * Delete elements by type
-     * 
-     * @param array $ids
-     * @param string $type
-     * 
-     * @throws \Throwable
-     * @return void
-     */
-    public function delete(array $ids, string $type) : void
-    {
-
-        $this->deleteElementsByIds($ids);
-
-    }
-
-    /**
      * Delete elements by ids
      * 
      * @param array $ids
