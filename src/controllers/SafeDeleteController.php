@@ -59,7 +59,7 @@ class SafeDeleteController extends Controller
             ];
         } else {
             $response = [
-                'html'    => $this->getDeleteOverlay($relations),
+                'html'    => $this->getDeleteOverlayTemplate($relations),
                 'success' => true,
             ];            
         }
@@ -132,7 +132,7 @@ class SafeDeleteController extends Controller
         );
     }
 
-    private function getDeleteOverlay(array $relations)
+    private function getDeleteOverlayTemplate(array $relations)
     {
         return Craft::$app->view->renderTemplate(
             'safeDelete/deleteOverlay',
