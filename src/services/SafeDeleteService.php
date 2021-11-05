@@ -43,6 +43,20 @@ class SafeDeleteService extends Component
     }
 
     /**
+     * Delete elements by ids
+     * 
+     * @param array $ids
+     * @throws \Throwable
+     * @return void
+     */
+    public function deleteElementsByIds(array $ids) : void
+    {
+        foreach ($ids as $id) {
+            Craft::$app->elements->deleteElementById($id);
+        }        
+    }
+
+    /**
      * @param array  $ids
      * @param string $type
      * @return array
@@ -325,19 +339,5 @@ class SafeDeleteService extends Component
             'count'   => $count,
             'results' => $arrReturn,
         ];
-    }
-
-    /**
-     * Delete elements by ids
-     * 
-     * @param array $ids
-     * @throws \Throwable
-     * @return void
-     */
-    private function deleteElementsByIds(array $ids) : void
-    {
-        foreach ($ids as $id) {
-            Craft::$app->elements->deleteElementById($id);
-        }        
     }
 }
