@@ -33,19 +33,13 @@ class SafeDeleteService extends Component
      * @param string $type
      * 
      * @throws \Throwable
-     * @return string
+     * @return void
      */
-    public function delete(array $ids, string $type) : string
+    public function delete(array $ids, string $type) : void
     {
 
         $this->deleteElementsByIds($ids);
 
-        return Json::encode(
-            [
-                'success' => true,
-                'message' => $this->setMessage($type),
-            ]
-        );
     }
 
     /**
@@ -345,25 +339,5 @@ class SafeDeleteService extends Component
         foreach ($ids as $id) {
             Craft::$app->elements->deleteElementById($id);
         }        
-    }
-
-    /**
-     * Set response message
-     * 
-     * @param string $type
-     * @return string 
-     */
-    private function setMessage(string $type) : string
-    {
-        switch ($type) {
-            case 'asset':
-                $str = 'Assets';
-                break;
-            case 'element':
-                $str = 'Elements';
-                break;
-        }
-
-        return Craft::t('safedelete', $str . ' deleted.');
     }
 }

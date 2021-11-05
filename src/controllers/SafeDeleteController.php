@@ -60,17 +60,20 @@ class SafeDeleteController extends Controller
         $relations = $this->plugin->safeDelete->getUsagesFor($ids, $type);
 
         if (count($relations) === 0) { // safe to delete
-            return $this->plugin->safeDelete->delete($ids, $type);
+
+            $this->plugin->safeDelete->delete($ids, $type);
+
+            return $this->asJson(
+                [
+                    'success' => true,
+                    'message' => $this->setMessage($type),
+                ]
+            );
         } 
-        
-        $html = Craft::$app->view->renderTemplate(
-            'safeDelete/deleteOverlay',
-            ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
-        );
 
         return $this->asJson(
             [
-                'html'    => $html,
+                'html'    => $this->getDeleteOverlay($relations),
                 'success' => true,
             ]
         );
@@ -128,5 +131,33 @@ class SafeDeleteController extends Controller
                 'message' => Craft::t('safedelete', 'Bad parameters.'),
             ]
         );
+    }
+
+    private function getDeleteOverlay(array $relations)
+    {
+        return Craft::$app->view->renderTemplate(
+            'safeDelete/deleteOverlay',
+            ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
+        );
+    }
+
+    /**
+     * Set response message
+     * 
+     * @param string $type
+     * @return string 
+     */
+    private function setMessage(string $type) : string
+    {
+        switch ($type) {
+            case 'asset':
+                $str = 'Assets';
+                break;
+            case 'element':
+                $str = 'Elements';
+                break;
+        }
+
+        return Craft::t('safedelete', $str . ' deleted.');
     }
 }
