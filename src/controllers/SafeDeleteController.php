@@ -32,36 +32,26 @@ class SafeDeleteController extends Controller
      */
     protected $allowAnonymous = false;
 
-    /**
-     * @var SafeDelete
-     */
-    protected $plugin;
-
     // Public Methods
     // =========================================================================
-
-    public function init()
-    {
-        parent::init();
-        $this->plugin = SafeDelete::getInstance();
-    }
 
     /**
      * @return mixed
      */
     public function actionTryDelete()
     {
+        $plugin = SafeDelete::$plugin;
         $request = Craft::$app->getRequest();
         $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
 
         $this->validateParams($ids, $type);
 
-        $relations = $this->plugin->safeDelete->getUsagesFor($ids, $type);
+        $relations = $plugin->safeDelete->getUsagesFor($ids, $type);
 
         if (count($relations) === 0) { // safe to delete
 
-            $this->plugin->safeDelete->deleteElementsByIds($ids);
+            $plugin->safeDelete->deleteElementsByIds($ids);
 
             $response = [
                 'success' => true,
@@ -79,15 +69,16 @@ class SafeDeleteController extends Controller
 
     public function actionForceDelete()
     {
+        $plugin = SafeDelete::$plugin;
         $request = Craft::$app->getRequest();
         $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
 
         $this->validateParams($ids, $type);
 
-        if ($this->plugin->settings->allowForceDelete) {
+        if ($plugin->settings->allowForceDelete) {
 
-            $this->plugin->safeDelete->deleteElementsByIds($ids);
+            $plugin->safeDelete->deleteElementsByIds($ids);
             $response = [
                 'success' => true,
                 'message' => $this->setMessage($type),
@@ -103,15 +94,16 @@ class SafeDeleteController extends Controller
 
     public function actionDeleteUnreferenced()
     {
+        $plugin = SafeDelete::$plugin;
         $request = Craft::$app->getRequest();
         $ids = $request->getParam('ids', []);
         $type = $request->getParam('type');
 
         $this->validateParams($ids, $type);
 
-        $ids = $this->plugin->safeDelete->filterReferencedIds($ids, $type);
+        $ids = $plugin->safeDelete->filterReferencedIds($ids, $type);
 
-        $this->plugin->safeDelete->deleteElementsByIds($ids);
+        $plugin->safeDelete->deleteElementsByIds($ids);
 
         return $this->asJson([
             'success' => true,
@@ -144,7 +136,7 @@ class SafeDeleteController extends Controller
     {
         return Craft::$app->view->renderTemplate(
             'safeDelete/deleteOverlay',
-            ['relations' => $relations, 'allowForceDelete' => (bool)$this->plugin->settings->allowForceDelete]
+            ['relations' => $relations, 'allowForceDelete' => (bool)SafeDelete::$plugin->settings->allowForceDelete]
         );
     }
 
