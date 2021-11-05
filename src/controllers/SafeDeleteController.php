@@ -61,7 +61,7 @@ class SafeDeleteController extends Controller
 
         if (count($relations) === 0) { // safe to delete
 
-            $this->plugin->safeDelete->delete($ids, $type);
+            $this->plugin->safeDelete->deleteElementsByIds($ids);
 
             $response = [
                 'success' => true,
@@ -87,7 +87,7 @@ class SafeDeleteController extends Controller
 
         if ($this->plugin->settings->allowForceDelete) {
 
-            $this->plugin->safeDelete->delete($ids, $type);
+            $this->plugin->safeDelete->deleteElementsByIds($ids);
             $response = [
                 'success' => true,
                 'message' => $this->setMessage($type),
@@ -111,7 +111,7 @@ class SafeDeleteController extends Controller
 
         $ids = $this->plugin->safeDelete->filterReferencedIds($ids, $type);
 
-        $this->plugin->safeDelete->delete($ids, $type);
+        $this->plugin->safeDelete->deleteElementsByIds($ids);
 
         return $this->asJson([
             'success' => true,
