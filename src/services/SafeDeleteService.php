@@ -114,10 +114,7 @@ class SafeDeleteService extends Component
         $sourceElement = Craft::$app->elements->getElementById($id);
         $sites = Craft::$app->sites->getAllSites();
 
-        $results = (new Query())->select('fieldId, sourceId')->from('relations')->where(
-            'targetId = :targetId',
-            ['targetId' => $id]
-        )->all();
+        $results = $this->getRelationsDataByTargetId($id);
 
         $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
         $arrReturn = array_merge($arrReturn, $search['results']);
@@ -134,6 +131,19 @@ class SafeDeleteService extends Component
         }
 
         return $arrReturn;
+    }
+
+    /**
+     * Get data by target id
+     * @param int $id
+     * @return array
+     */
+    private function getRelationsDataByTargetId(int $id) : array
+    {
+        return (new Query())->select('fieldId, sourceId')->from('relations')->where(
+            'targetId = :targetId',
+            ['targetId' => $id]
+        )->all();
     }
 
     /**
