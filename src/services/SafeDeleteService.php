@@ -76,7 +76,7 @@ class SafeDeleteService extends Component
         $arrIds = [];
         $arrRet = [];
 
-        $relations = $this->getUsagesFor($ids, $type);
+        $relations = $this->getRelations($ids, $type);
 
         foreach ($relations as $elements) {
             foreach ($elements as $element) {
