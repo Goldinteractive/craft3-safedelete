@@ -53,18 +53,16 @@ class SafeDeleteController extends Controller
 
             $plugin->safeDelete->deleteElementsByIds($ids);
 
-            $response = [
+            return $this->asJson([
                 'success' => true,
                 'message' => $this->setMessage($type),
-            ];
-        } else {
-            $response = [
+            ]);
+        } 
+
+        return $this->asJson([
                 'html'    => $this->getDeleteOverlayTemplate($relations),
                 'success' => true,
-            ];            
-        }
-
-        return $this->asJson($response);
+        ]);
     }
 
     public function actionForceDelete()
@@ -79,17 +77,16 @@ class SafeDeleteController extends Controller
         if ($plugin->settings->allowForceDelete) {
 
             $plugin->safeDelete->deleteElementsByIds($ids);
-            $response = [
+
+            $this->asJson([
                 'success' => true,
                 'message' => $this->setMessage($type),
-            ];
-        } else {
-            $response = [
-                'success' => false,
-            ];            
+            ]);
         }
 
-        return $this->asJson($response);
+        return $this->asJson([
+                'success' => false,
+        ]);
     }
 
     public function actionDeleteUnreferenced()
