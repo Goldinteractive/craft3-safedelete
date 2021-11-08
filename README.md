@@ -14,6 +14,15 @@ delivers you also a list of elements where it is referenced.
 For now the safe delete only works via the element index as an element action.
 In future release this should also work while in the edit view of an element.
 
+## Support
+ - craft\fields\Assets
+ - craft\fields\Entries
+ - fruitstudios\linkit
+
+## Waiting for support
+Other 3th party plugins
+https://docs.craftcms.com/v3/reference-tags.html#parsing-reference-tags
+
 ## Demo
 
 ![Screenshot](resources/img/feature-1.png)
