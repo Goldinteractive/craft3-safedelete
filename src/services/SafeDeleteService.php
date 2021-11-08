@@ -17,6 +17,7 @@ use goldinteractive\safedelete\SafeDelete;
 use Craft;
 use craft\base\Component;
 use yii\base\InvalidConfigException;
+use craft\base\ElementInterface;
 use craft\helpers\Json;
 
 /**
@@ -185,56 +186,29 @@ class SafeDeleteService extends Component
                 break;
             }
 
-            $fieldId = $relation['fieldId'];
             $sourceId = $relation['sourceId'];
 
-            $field = Craft::$app->fields->getFieldById($fieldId);
+            $field = Craft::$app->fields->getFieldById($relation['fieldId']);
 
             foreach ($sites as $site) {
-                $siteId = $site->id;
 
-                $element = Craft::$app->elements->getElementById($sourceId, null, $siteId);
+                $element = Craft::$app->elements->getElementById($sourceId, null, $site->id);
 
                 if ($element !== null) {
                     $elementType = Craft::$app->elements->getElementTypeById($sourceId);
-                    $parent = null;
-                    $editUrl = null;
 
-                    switch ($elementType) {
-                        case 'craft\elements\MatrixBlock':
-                            $matrix = Craft::$app->matrix->getBlockById($sourceId, $siteId);
-                            $parent = $this->getTopOwner($matrix);
-                            break;
-                        case 'benf\neo\elements\Block':
-                            $neo = \benf\neo\Plugin::$plugin->blocks->getBlockById($sourceId, $siteId);
-                            $parent = $this->getTopOwner($neo);
-                            break;
-                    }
+                    $parent = $this->getBlockParentElement($elementType, $sourceId, $site->id);
 
                     // if the element is referenced but not used in any entry, continue
                     if (($elementType == 'craft\elements\MatrixBlock' || $elementType == 'benf\neo\elements\Block') && !$parent) {
                         continue;
                     }
 
-                    $edit = $element;
+                    $edit = $parent !== null ? $parent : $element;
 
-                    if ($parent !== null) {
-                        $edit = $parent;
-                    }
+                    $editUrl = $this->resolveElementEditUrl($edit);
 
-                    $elementType = Craft::$app->elements->getElementTypeById($edit->id);
-
-                    if ($elementType) {
-                        switch ($elementType) {
-                            case Entry::class:
-                                if ($edit->getIsRevision()) {
-                                    // ignore this result
-                                    continue 3;
-                                }
-
-                                $editUrl = $edit->getCpEditUrl();
-                                break;
-                        }
+                    if ($editUrl) {
 
                         $arrReturn[] = [
                             'sourceElement' => $sourceElement,
@@ -255,6 +229,45 @@ class SafeDeleteService extends Component
             'count'   => $count,
             'results' => $arrReturn,
         ];
+    }
+
+    /**
+     * Get block parent entry
+     * @param $type
+     * @param int $sourceId
+     * @param $siteId
+     * @return ElementInterface|null 
+     */
+    private function getBlockParentElement($type, $sourceId, $siteId) : ?ElementInterface
+    {
+        switch ($type) {
+            case 'craft\elements\MatrixBlock':
+                $matrix = Craft::$app->matrix->getBlockById($sourceId, $siteId);
+                $parent = $this->getTopOwner($matrix);
+                break;
+            case 'benf\neo\elements\Block':
+                $neo = \benf\neo\Plugin::$plugin->blocks->getBlockById($sourceId, $siteId);
+                $parent = $this->getTopOwner($neo);
+                break;
+        }
+
+        return $parent ?? null;
+    }
+
+    private function resolveElementEditUrl($edit) : ?string
+    {
+        $elementType = Craft::$app->elements->getElementTypeById($edit->id);
+
+        switch ($elementType) {
+            case Entry::class:
+                if ($edit->getIsRevision()) {
+                    // ignore this result
+                    return null;
+                }
+
+                return $edit->getCpEditUrl();
+        
+        }
     }
 
     private function searchForLinkItPluginRelations(
