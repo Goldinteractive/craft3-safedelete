@@ -254,7 +254,13 @@ class SafeDeleteService extends Component
         return $parent ?? null;
     }
 
-    private function resolveElementEditUrl($edit) : ?string
+    /**
+     * Resolve element cp edit url
+     * 
+     * @param ElementInterface $edit
+     * @return string|null
+     */
+    private function resolveElementEditUrl(ElementInterface $edit) : ?string
     {
         $elementType = Craft::$app->elements->getElementTypeById($edit->id);
 
