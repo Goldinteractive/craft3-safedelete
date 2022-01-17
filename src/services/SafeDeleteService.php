@@ -12,6 +12,7 @@ namespace goldinteractive\safedelete\services;
 
 use craft\db\Query;
 use craft\elements\Entry;
+use craft\elements\Category;
 use goldinteractive\safedelete\SafeDelete;
 
 use Craft;
@@ -266,6 +267,7 @@ class SafeDeleteService extends Component
 
         switch ($elementType) {
             case Entry::class:
+            case Category::class:
                 if ($edit->getIsRevision()) {
                     // ignore this result
                     return null;
