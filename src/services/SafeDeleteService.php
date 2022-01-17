@@ -133,7 +133,7 @@ class SafeDeleteService extends Component
      */
     private function getRelationsDataByTargetId(int $id) : array
     {
-        return (new Query())->select('fieldId, sourceId')->from('relations')->where(
+        return (new Query())->select('fieldId, sourceId')->from('{{%relations}}')->where(
             'targetId = :targetId',
             ['targetId' => $id]
         )->all();
