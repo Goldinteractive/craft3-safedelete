@@ -52,7 +52,7 @@ class SafeDeleteElements extends SafeDeleteBase
      */
     public function getTriggerLabel(): string
     {
-        return Craft::t('safedelete', 'Safe Delete….');
+        return Craft::t('safedelete', 'Safe Delete');
     }
 
     /**
