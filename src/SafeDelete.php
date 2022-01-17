@@ -12,6 +12,7 @@ namespace goldinteractive\safedelete;
 
 use craft\base\Volume;
 use craft\elements\actions\Delete;
+use craft\elements\actions\DeleteAssets;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
@@ -40,6 +41,7 @@ use yii\base\Event;
  */
 class SafeDelete extends Plugin
 {
+
     // Static Properties
     // =========================================================================
 
@@ -87,15 +89,7 @@ class SafeDelete extends Plugin
                 if (Craft::$app->user->checkPermission('deleteFilesAndFoldersInVolume:' . $volume->uid)) {
                     $settings = SafeDelete::$plugin->getSettings();
                     if($settings->hideDefaultDeleteAction) {
-                        $actions = [];
-
-                        foreach ($event->actions as $action) {
-                            if($action !== 'craft\elements\actions\DeleteAssets') {
-                                $actions[] = $action;
-                            }
-                        }
-
-                        $event->actions = $actions;
+                        $this->disableActions($event->actions, [DeleteAssets::class]);
                     }
 
                     $event->actions[] = new SafeDeleteAssets();
@@ -123,18 +117,11 @@ class SafeDelete extends Plugin
                 ) {
                     $settings = SafeDelete::$plugin->getSettings();
                     if($settings->hideDefaultDeleteAction) {
-                        $actions = [];
-
-                        foreach ($event->actions as $action) {
-                            if(! $action instanceof Delete) {
-                                $actions[] = $action;
-                            }
-                        }
-
-                        $event->actions = $actions;
+                        $this->disableActions($event->actions, [Delete::class]);
                     }
 
                     $event->actions[] = new SafeDeleteElements();
+
                 }
             }
         });
@@ -151,16 +138,8 @@ class SafeDelete extends Plugin
 
             if (!empty($group)) {
                 $settings = SafeDelete::$plugin->getSettings();
-                if($settings->hideDefaultDeleteAction) {
-                    $actions = [];
-
-                    foreach ($event->actions as $action) {
-                        if(! $action instanceof Delete) {
-                            $actions[] = $action;
-                        }
-                    }
-
-                    $event->actions = $actions;
+                if($settings->hideDefaultDeleteAction) { 
+                    $this->disableActions($event->actions, [Delete::class]);
                 }
 
                 $event->actions[] = new SafeDeleteElements();
@@ -197,5 +176,15 @@ class SafeDelete extends Plugin
                 'settings' => $this->getSettings(),
             ]
         );
+    }
+
+    private function disableActions(array &$actions, array $disabledActions) : void
+    {
+
+        foreach ($actions as $key => $action) {
+            if (in_array($action, $disabledActions) || (is_array($action) && in_array($action['type'], $disabledActions))) {
+                unset($actions[$key]);
+            }
+        }   
     }
 }
