@@ -119,6 +119,7 @@ class SafeDeleteService extends Component
             // support for fruitstudios/linkit plugin
             if (Craft::$app->plugins->isPluginEnabled('linkit')) {
                 $search = $this->searchForLinkItPluginRelations($limit, $count, $sourceElement);
+
                 $arrReturn = array_merge($arrReturn, $search['results']);
                 $count = $search['count'];
             }
@@ -134,6 +135,8 @@ class SafeDeleteService extends Component
      */
     private function getRelationsDataByTargetId(int $id) : array
     {
+
+
         return (new Query())->select('fieldId, sourceId')->from('{{%relations}}')->where(
             'targetId = :targetId',
             ['targetId' => $id]
@@ -312,7 +315,7 @@ class SafeDeleteService extends Component
                     !isset($decoded['type']) ||
                     !isset($decoded['value']) ||
                     !in_array($decoded['type'], $possibleTypes) ||
-                    $decoded['value'] !== $id
+                    (int)$decoded['value'] !== $id
                 ) {
                     continue;
                 }
@@ -339,7 +342,6 @@ class SafeDeleteService extends Component
                 }
             }
         }
-
         return [
             'count'   => $count,
             'results' => $arrReturn,
