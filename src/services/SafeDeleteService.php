@@ -13,6 +13,7 @@ namespace goldinteractive\safedelete\services;
 use craft\db\Query;
 use craft\elements\Entry;
 use craft\elements\Category;
+use craft\elements\Asset;
 use goldinteractive\safedelete\SafeDelete;
 
 use Craft;
@@ -119,7 +120,6 @@ class SafeDeleteService extends Component
             // support for fruitstudios/linkit plugin
             if (Craft::$app->plugins->isPluginEnabled('linkit')) {
                 $search = $this->searchForLinkItPluginRelations($limit, $count, $sourceElement);
-
                 $arrReturn = array_merge($arrReturn, $search['results']);
                 $count = $search['count'];
             }
@@ -135,13 +135,12 @@ class SafeDeleteService extends Component
      */
     private function getRelationsDataByTargetId(int $id) : array
     {
-
-
         return (new Query())->select('fieldId, sourceId')->from('{{%relations}}')->where(
             'targetId = :targetId',
             ['targetId' => $id]
         )->all();
     }
+
 
     /**
      * Get the top owner of the given element
