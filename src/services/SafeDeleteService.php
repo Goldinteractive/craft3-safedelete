@@ -113,7 +113,8 @@ class SafeDeleteService extends Component
 
         //$results = $this->getRelationsDataByTargetId($id);
         //$results = $this->getCraftAssetsRelations($id);
-        $results = $this->getAssetNeoRelations($id);
+        //$results = $this->getAssetNeoRelations($id);
+        $results = $this->getAssetMatrixRelations($id);
         $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
         $arrReturn[$id]['results'] = $results;
         //$arrReturn = array_merge($arrReturn, $results);
@@ -190,18 +191,33 @@ class SafeDeleteService extends Component
                             ->all();
     }
 
+    private function getAssetMatrixRelations($id)
+    {
+        return $this->baseQuery($id)
+                    ->addSelect('e.dateDeleted as dateDeleted,
+                                                 m.ownerId as mOwnerId,
+                                                 src_cnt.title as elementTitle')
+                    ->leftJoin('{{%matrixblocks}} as m', 'm.id = {{%elements}}.canonicalId')
+                    ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = m.ownerId')
+                    ->leftJoin('{{%elements}} as e', 'e.id = m.ownerId')
+                    ->andWhere(['not', ['m.ownerId' => null]])
+                    ->andWhere(['is', 'e.dateDeleted', null])
+                    ->groupBy('e.id')
+                    ->all();
+    }
+
     private function getAssetNeoRelations($id)
     {
         return $this->baseQuery($id)
-                    ->addSelect('elm.dateDeleted as dateDeleted,
-                                                 neo.ownerId as neoOwnerId,
+                    ->addSelect('e.dateDeleted as dateDeleted,
+                                                 n.ownerId as neoOwnerId,
                                                  src_cnt.title as elementTitle')
-                    ->leftJoin('{{%neoblocks}} as neo', 'neo.id = {{%elements}}.canonicalId')
-                    ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = neo.ownerId')
-                    ->leftJoin('{{%elements}} as elm', 'elm.id = neo.ownerId')
-                    ->andWhere(['not', ['neo.ownerId' => null]])
-                    ->andWhere(['is', 'elm.dateDeleted', null])
-                    ->groupBy('elm.id')
+                    ->leftJoin('{{%neoblocks}} as n', 'n.id = {{%elements}}.canonicalId')
+                    ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = n.ownerId')
+                    ->leftJoin('{{%elements}} as e', 'e.id = n.ownerId')
+                    ->andWhere(['not', ['n.ownerId' => null]])
+                    ->andWhere(['is', 'e.dateDeleted', null])
+                    ->groupBy('e.id')
                     ->all();
     }
 
