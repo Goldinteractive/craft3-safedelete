@@ -43,12 +43,12 @@
                                 {% for result in sourceElement.results %}
                                 <tr>
                                     <td>{{ result.siteName ?? 'No site - check it' }}</td>
-                                    <td>{{ sourceElement.sourceElementTitle ?? 'No element - check it' }}</td>
+                                    <td>{{ sourceElement.sourceElementTitle }}</td>
 
                                     <td>{{ result.elementType|t }}</td>
                                     <td>{{ result.fieldName }} ({{ result.fieldHandle }})</td>
                                     <td>
-                                        {{ result.elementTitle ?? result.elementTitle_Matrix }}                               
+                                        {{ result.elementTitle }}                               
                                     </td>
                                     <td>{{ sourceElement.sourceElementSlug ?? 'No slug - check it' }}</td>
                                 </tr>

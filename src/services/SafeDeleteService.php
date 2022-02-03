@@ -196,7 +196,8 @@ class SafeDeleteService extends Component
         return $this->baseQuery($id)
                     ->addSelect('e.dateDeleted as dateDeleted,
                                                  m.ownerId as mOwnerId,
-                                                 src_cnt.title as elementTitle')
+                                                 src_cnt.title as elementTitle,
+                                                 src_cnt.siteId as siteId')
                     ->leftJoin('{{%matrixblocks}} as m', 'm.id = {{%elements}}.canonicalId')
                     ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = m.ownerId')
                     ->leftJoin('{{%elements}} as e', 'e.id = m.ownerId')
@@ -228,14 +229,12 @@ class SafeDeleteService extends Component
                                       fld.type as fieldType, 
                                       fld.name as fieldName, 
                                       fld.handle as fieldHandle, 
-                                      cnt.title as elementTitle, 
-                                      cnt.siteId as elementSiteId,
                                       rel.sourceId as sourceId, 
                                       {{%elements}}.id as elementId,
                                       {{%elements}}.type as elementType')
                             ->from('{{%elements}}')
                             ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
-                            ->leftJoin('{{%content}} as cnt', 'cnt.elementId = {{%elements}}.id')
+                            ->leftJoin('{{%content}} as cnt', 'cnt.elementId = rel.sourceId')
                             ->leftJoin('{{%sites}} as st', 'cnt.siteId = st.id')
                             ->leftJoin('{{%fields}} as fld', 'rel.fieldId = fld.id')
                             ->andWhere(['=', 'rel.targetId', $id]);
