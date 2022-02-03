@@ -113,8 +113,11 @@ class SafeDeleteService extends Component
 
         //$results = $this->getRelationsDataByTargetId($id);
         //$results = $this->getCraftAssetsRelations($id);
-        $results = $this->getAssetNeoRelations($id);
-        //$results = $this->getAssetMatrixRelations($id);
+        $neoResults = $this->getAssetNeoRelations($id);
+        $matrixResults = $this->getAssetMatrixRelations($id);
+
+        $results = array_merge($neoResults, $matrixResults);
+        
         if (count($results) > 0) {
           $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
           $arrReturn[$id]['results'] = $results;            
