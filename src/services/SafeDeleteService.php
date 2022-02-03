@@ -113,8 +113,8 @@ class SafeDeleteService extends Component
 
         //$results = $this->getRelationsDataByTargetId($id);
         //$results = $this->getCraftAssetsRelations($id);
-        //$results = $this->getAssetNeoRelations($id);
-        $results = $this->getAssetMatrixRelations($id);
+        $results = $this->getAssetNeoRelations($id);
+        //$results = $this->getAssetMatrixRelations($id);
         $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
         $arrReturn[$id]['results'] = $results;
         //$arrReturn = array_merge($arrReturn, $results);
@@ -194,13 +194,14 @@ class SafeDeleteService extends Component
     private function getAssetMatrixRelations($id)
     {
         return $this->baseQuery($id)
-                    ->addSelect('e.dateDeleted as dateDeleted,
-                                                 m.ownerId as mOwnerId,
-                                                 src_cnt.title as elementTitle,
-                                                 src_cnt.siteId as siteId')
+                    ->addSelect('s.name as siteName, 
+                                e.dateDeleted as dateDeleted,
+                                m.ownerId as mOwnerId,
+                                src_cnt.title as elementTitle')
                     ->leftJoin('{{%matrixblocks}} as m', 'm.id = {{%elements}}.canonicalId')
                     ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = m.ownerId')
                     ->leftJoin('{{%elements}} as e', 'e.id = m.ownerId')
+                    ->leftJoin('{{%sites}} as s', 'src_cnt.siteId = s.id')
                     ->andWhere(['not', ['m.ownerId' => null]])
                     ->andWhere(['is', 'e.dateDeleted', null])
                     ->groupBy('e.id')
@@ -210,12 +211,14 @@ class SafeDeleteService extends Component
     private function getAssetNeoRelations($id)
     {
         return $this->baseQuery($id)
-                    ->addSelect('e.dateDeleted as dateDeleted,
-                                                 n.ownerId as neoOwnerId,
-                                                 src_cnt.title as elementTitle')
+                    ->addSelect('s.name as siteName,
+                                e.dateDeleted as dateDeleted,
+                                n.ownerId as neoOwnerId,
+                                src_cnt.title as elementTitle')
                     ->leftJoin('{{%neoblocks}} as n', 'n.id = {{%elements}}.canonicalId')
                     ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = n.ownerId')
                     ->leftJoin('{{%elements}} as e', 'e.id = n.ownerId')
+                    ->leftJoin('{{%sites}} as s', 'src_cnt.siteId = s.id')
                     ->andWhere(['not', ['n.ownerId' => null]])
                     ->andWhere(['is', 'e.dateDeleted', null])
                     ->groupBy('e.id')
@@ -224,8 +227,7 @@ class SafeDeleteService extends Component
 
     private function baseQuery($id)
     {
-        return (new Query())->select('st.name as siteName, 
-                                      fld.id as fieldId,
+        return (new Query())->select('fld.id as fieldId,
                                       fld.type as fieldType, 
                                       fld.name as fieldName, 
                                       fld.handle as fieldHandle, 
@@ -235,7 +237,6 @@ class SafeDeleteService extends Component
                             ->from('{{%elements}}')
                             ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
                             ->leftJoin('{{%content}} as cnt', 'cnt.elementId = rel.sourceId')
-                            ->leftJoin('{{%sites}} as st', 'cnt.siteId = st.id')
                             ->leftJoin('{{%fields}} as fld', 'rel.fieldId = fld.id')
                             ->andWhere(['=', 'rel.targetId', $id]);
     }
