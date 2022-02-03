@@ -48,7 +48,7 @@
                                     <td>{{ result.elementType|t }}</td>
                                     <td>{{ result.fieldName }} ({{ result.fieldHandle }})</td>
                                     <td>
-                                        {{ result.elementTitle }}                               
+                                        {{ result.elementTitle ?? result.elementTitle_Matrix }}                               
                                     </td>
                                     <td>{{ sourceElement.sourceElementSlug ?? 'No slug - check it' }}</td>
                                 </tr>
