@@ -13,6 +13,8 @@ namespace goldinteractive\safedelete\services;
 use craft\db\Query;
 use craft\elements\Entry;
 use craft\elements\Category;
+use craft\elements\MatrixBlock;
+use benf\neo\elements\Block as NeoBlock;
 use craft\elements\Asset;
 use goldinteractive\safedelete\SafeDelete;
 
@@ -105,13 +107,18 @@ class SafeDeleteService extends Component
     {
         $count = 0;
         $arrReturn = [];
-
+        $results = [];
         $sourceElement = Craft::$app->elements->getElementById($id);
         $sites = Craft::$app->sites->getAllSites();
 
-        $results = $this->getRelationsDataByTargetId($id);
+        //$results = $this->getRelationsDataByTargetId($id);
+        $results = $this->getCraftAssetsRelations($id);
+        //$results = $this->getAssetNeoRelations($id);
+        $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
+        $arrReturn[$id]['results'] = $results;
+        //$arrReturn = array_merge($arrReturn, $results);
 
-        $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
+        /*$search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
         $arrReturn = array_merge($arrReturn, $search['results']);
         $count = $search['count'];
 
@@ -123,9 +130,113 @@ class SafeDeleteService extends Component
                 $arrReturn = array_merge($arrReturn, $search['results']);
                 $count = $search['count'];
             }
-        }
+        }*/
 
         return $arrReturn;
+    }
+
+    /**
+     * Get data by target id
+     * @param int $id
+     * @return array
+     */
+    private function getCraftAssetsRelationsDebug(int $id) : array
+    {
+        return (new Query())->select('{{%elements}}.id, {{%elements}}.dateDeleted')
+                            ->from('{{%elements}}')
+                            ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
+                            ->andWhere(['=', 'rel.targetId', $id])
+                            ->andWhere(['is', '{{%elements}}.dateDeleted', null])
+                            ->groupBy('{{%elements}}.id')
+                            ->all();
+    }
+
+    /**
+     * Get data by target id
+     * @param int $id
+     * @return array
+     */
+    private function getCraftAssetsRelations(int $id) : array
+    {
+        return (new Query())->select('st.name as siteName, 
+                                      fld.id as fieldId,
+                                      fld.type as fieldType, 
+                                      fld.name as fieldName, 
+                                      fld.handle as fieldHandle, 
+                                      cnt.title as elementTitle, 
+                                      rel.sourceId as sourceId, 
+                                      {{%elements}}.id as elementId,
+                                      {{%elements}}.type as elementType,
+                                      elm.dateDeleted as dateDeleted,
+                                      mtx.ownerId as matrixOwnerId,
+                                      neo.ownerId as neoOwnerId,
+                                      src_cnt.title as elementTitle,
+                                      srcM_cnt.title as elementTitle_Matrix')
+                            ->from('{{%elements}}')
+                            ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
+                            ->leftJoin('{{%content}} as cnt', 'cnt.elementId = {{%elements}}.id')
+                            ->leftJoin('{{%sites}} as st', 'cnt.siteId = st.id')
+                            ->leftJoin('{{%fields}} as fld', 'rel.fieldId = fld.id')
+                            ->andWhere(['=', 'rel.targetId', $id])
+                            ->leftJoin('{{%matrixblocks}} as mtx', 'mtx.id = {{%elements}}.canonicalId')
+                            ->leftJoin('{{%neoblocks}} as neo', 'neo.id = {{%elements}}.canonicalId')
+                            ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = neo.ownerId')
+                            ->leftJoin('{{%content}} as srcM_cnt', 'srcM_cnt.elementId = mtx.ownerId')
+                            ->leftJoin('{{%elements}} as elm', 'elm.id = neo.ownerId')
+                            ->andWhere(['not', ['mtx.ownerId' => null, 'neo.ownerId' => null]])
+                            ->andWhere(['is', 'elm.dateDeleted', null])
+                            ->groupBy('elm.id')
+                            ->all();
+    }
+
+    private function getAssetNeoRelations($id)
+    {
+        return (new Query())->select('st.name as siteName, 
+                                      fld.id as fieldId,
+                                      fld.type as fieldType, 
+                                      fld.name as fieldName, 
+                                      fld.handle as fieldHandle, 
+                                      cnt.title as elementTitle, 
+                                      rel.sourceId as sourceId, 
+                                      {{%elements}}.id as elementId,
+                                      {{%elements}}.type as elementType,
+                                      elm.dateDeleted as dateDeleted,
+                                      neo.ownerId as neoOwnerId,
+                                      src_cnt.title as sourceElementTitle')
+                            ->from('{{%elements}}')
+                            ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
+                            ->leftJoin('{{%content}} as cnt', 'cnt.elementId = {{%elements}}.id')
+                            ->leftJoin('{{%sites}} as st', 'cnt.siteId = st.id')
+                            ->leftJoin('{{%fields}} as fld', 'rel.fieldId = fld.id')
+                            ->andWhere(['=', 'rel.targetId', $id])
+                            ->leftJoin('{{%neoblocks}} as neo', 'neo.id = {{%elements}}.canonicalId')
+                            ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = neo.ownerId')
+                            ->leftJoin('{{%elements}} as elm', 'elm.id = neo.ownerId')
+                            ->andWhere(['not', ['neo.ownerId' => null]])
+                            ->andWhere(['is', 'elm.dateDeleted', null])
+                            ->groupBy('elm.id')
+                            ->all();
+    }
+
+    private function parseResults($results, $sourceElement) : array
+    {
+        $data = [];
+        foreach ($results as $r) {
+            $element = Craft::$app->elements->getElementById($r->ownerId);
+
+            if ($element->status === 'live') {
+                $data[] = [
+                    'sourceElement' => $sourceElement->id,
+                    'field'         => $r->fieldId,
+                    'element'       => $element->title ?? null,
+                    'parent'        => null,
+                    'editUrl'       => null,
+                    'site'          => $element->site->name,
+                ];                
+            }
+        }
+
+        return $data;
     }
 
     /**
