@@ -112,8 +112,8 @@ class SafeDeleteService extends Component
         $sites = Craft::$app->sites->getAllSites();
 
         //$results = $this->getRelationsDataByTargetId($id);
-        $results = $this->getCraftAssetsRelations($id);
-        //$results = $this->getAssetNeoRelations($id);
+        //$results = $this->getCraftAssetsRelations($id);
+        $results = $this->getAssetNeoRelations($id);
         $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
         $arrReturn[$id]['results'] = $results;
         //$arrReturn = array_merge($arrReturn, $results);
@@ -164,6 +164,7 @@ class SafeDeleteService extends Component
                                       fld.name as fieldName, 
                                       fld.handle as fieldHandle, 
                                       cnt.title as elementTitle, 
+                                      cnt.siteId as elementSiteId,
                                       rel.sourceId as sourceId, 
                                       {{%elements}}.id as elementId,
                                       {{%elements}}.type as elementType,
@@ -191,52 +192,37 @@ class SafeDeleteService extends Component
 
     private function getAssetNeoRelations($id)
     {
+        return $this->baseQuery($id)
+                    ->addSelect('elm.dateDeleted as dateDeleted,
+                                                 neo.ownerId as neoOwnerId,
+                                                 src_cnt.title as elementTitle')
+                    ->leftJoin('{{%neoblocks}} as neo', 'neo.id = {{%elements}}.canonicalId')
+                    ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = neo.ownerId')
+                    ->leftJoin('{{%elements}} as elm', 'elm.id = neo.ownerId')
+                    ->andWhere(['not', ['neo.ownerId' => null]])
+                    ->andWhere(['is', 'elm.dateDeleted', null])
+                    ->groupBy('elm.id')
+                    ->all();
+    }
+
+    private function baseQuery($id)
+    {
         return (new Query())->select('st.name as siteName, 
                                       fld.id as fieldId,
                                       fld.type as fieldType, 
                                       fld.name as fieldName, 
                                       fld.handle as fieldHandle, 
                                       cnt.title as elementTitle, 
+                                      cnt.siteId as elementSiteId,
                                       rel.sourceId as sourceId, 
                                       {{%elements}}.id as elementId,
-                                      {{%elements}}.type as elementType,
-                                      elm.dateDeleted as dateDeleted,
-                                      neo.ownerId as neoOwnerId,
-                                      src_cnt.title as sourceElementTitle')
+                                      {{%elements}}.type as elementType')
                             ->from('{{%elements}}')
                             ->leftJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
                             ->leftJoin('{{%content}} as cnt', 'cnt.elementId = {{%elements}}.id')
                             ->leftJoin('{{%sites}} as st', 'cnt.siteId = st.id')
                             ->leftJoin('{{%fields}} as fld', 'rel.fieldId = fld.id')
-                            ->andWhere(['=', 'rel.targetId', $id])
-                            ->leftJoin('{{%neoblocks}} as neo', 'neo.id = {{%elements}}.canonicalId')
-                            ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = neo.ownerId')
-                            ->leftJoin('{{%elements}} as elm', 'elm.id = neo.ownerId')
-                            ->andWhere(['not', ['neo.ownerId' => null]])
-                            ->andWhere(['is', 'elm.dateDeleted', null])
-                            ->groupBy('elm.id')
-                            ->all();
-    }
-
-    private function parseResults($results, $sourceElement) : array
-    {
-        $data = [];
-        foreach ($results as $r) {
-            $element = Craft::$app->elements->getElementById($r->ownerId);
-
-            if ($element->status === 'live') {
-                $data[] = [
-                    'sourceElement' => $sourceElement->id,
-                    'field'         => $r->fieldId,
-                    'element'       => $element->title ?? null,
-                    'parent'        => null,
-                    'editUrl'       => null,
-                    'site'          => $element->site->name,
-                ];                
-            }
-        }
-
-        return $data;
+                            ->andWhere(['=', 'rel.targetId', $id]);
     }
 
     /**
