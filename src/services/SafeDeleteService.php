@@ -300,7 +300,6 @@ class SafeDeleteService extends Component
                             ->innerJoin('{{%content}} as content', 'content.elementId = relations.targetId')
                             ->innerJoin('{{%sites}} as sites', 'sites.id = content.siteId')
                             ->where(['=', 'relations.targetId', $id])
-                            ->groupBy('elements.id')
                             ->all();
     }
 
