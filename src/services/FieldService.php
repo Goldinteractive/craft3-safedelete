@@ -93,6 +93,7 @@ class FieldService extends Component
             ])
             ->from(['{{%content}} content'])
             ->innerJoin('{{%elements}} as elements', 'content.elementId = elements.id')
+            ->innerJoin('{{%sites}} as sites', 'content.siteId = sites.id')
             ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'')
             ->andWhere(['is', 'elements.dateDeleted', null])
             ->andWhere(['is', 'elements.draftId', null])
