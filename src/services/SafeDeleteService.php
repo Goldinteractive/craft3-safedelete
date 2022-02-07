@@ -296,6 +296,10 @@ class SafeDeleteService extends Component
                             ->innerJoin('{{%fields}} as fields', 'relations.fieldId = fields.id')
                             ->innerJoin('{{%elements}} as elements', 'relations.sourceId = elements.id')
                             ->where(['=', 'relations.targetId', $id])
+                            ->andWhere(['is', 'elements.dateDeleted', null])
+                            ->andWhere(['is', 'elements.draftId', null])
+                            ->andWhere(['is', 'elements.revisionId', null])
+                            ->andWhere(['=', 'elements.enabled', 1])
                             ->all();
     }
 

@@ -93,7 +93,11 @@ class FieldService extends Component
             ])
             ->from(['{{%content}} content'])
             ->innerJoin('{{%elements}} as elements', 'content.elementId = elements.id')
-            ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'');
+            ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'')
+            ->andWhere(['is', 'elements.dateDeleted', null])
+            ->andWhere(['is', 'elements.draftId', null])
+            ->andWhere(['is', 'elements.revisionId', null])
+            ->andWhere(['=', 'elements.enabled', 1]);
 
         if (!empty($filterValue)) {
             if ($fuzzySearch) {
