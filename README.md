@@ -2,6 +2,13 @@
 
 ## In Development - do not use!
 
+Optimized: 
+    - fields data & elements queries 
+    - fields data & elements queries for linkit field relation
+
+Todo:
+    - optimize sites iteration for all results
+
 Delete elements without breaking relations
 
 
