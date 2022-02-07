@@ -291,20 +291,15 @@ class SafeDeleteService extends Component
                                       fields.name as fieldName,
                                       fields.handle as fieldHandle,
                                       fields.type as fieldType,
-                                      elements.type as elementType,
-                                      content.siteId as siteId,
-                                      sites.name as siteName')
+                                      elements.type as elementType')
                             ->from('{{%relations}} relations')
                             ->innerJoin('{{%fields}} as fields', 'relations.fieldId = fields.id')
                             ->innerJoin('{{%elements}} as elements', 'relations.sourceId = elements.id')
-                            ->innerJoin('{{%content}} as content', 'content.elementId = relations.targetId')
-                            ->innerJoin('{{%sites}} as sites', 'sites.id = content.siteId')
                             ->where(['=', 'relations.targetId', $id])
                             ->andWhere(['is', 'elements.dateDeleted', null])
                             ->andWhere(['is', 'elements.draftId', null])
                             ->andWhere(['is', 'elements.revisionId', null])
                             ->andWhere(['=', 'elements.enabled', 1])
-                            ->groupBy('elements.id')
                             ->all();
     }
 
