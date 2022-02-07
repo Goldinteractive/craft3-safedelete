@@ -132,7 +132,7 @@ class SafeDeleteController extends Controller
     private function getDeleteOverlayTemplate(array $relations)
     {
         return Craft::$app->view->renderTemplate(
-            'safeDelete/deleteOverlay_v2',
+            'safeDelete/deleteOverlay',
             ['relations' => $relations, 'allowForceDelete' => (bool)SafeDelete::$plugin->settings->allowForceDelete]
         );
     }

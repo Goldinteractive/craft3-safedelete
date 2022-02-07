@@ -107,25 +107,27 @@ class SafeDeleteService extends Component
     {
         $count = 0;
         $arrReturn = [];
-        $results = [];
+
         $sourceElement = Craft::$app->elements->getElementById($id);
         $sites = Craft::$app->sites->getAllSites();
 
-        //$results = $this->getRelationsDataByTargetId($id);
-        //$results = $this->getCraftAssetsRelations($id);
-        $neoResults = $this->getAssetNeoRelations($id);
-        $matrixResults = $this->getAssetMatrixRelations($id);
+        $results = $this->getRelationsDataByTargetId($id);
 
-        $results = array_merge($neoResults, $matrixResults);
-        
+        //$results = $this->getAssetsRelations($id);
+        //$neoResults = $this->getNeoRelations($id);
+        //$matrixResults = $this->baseMatrixQuery($id);
+
+        //$results = array_merge($neoResults, $matrixResults);
+        /*var_dump($matrixResults);
+        die;
         if (count($results) > 0) {
           $arrReturn[$id]['sourceElementTitle'] = $sourceElement->title;
           $arrReturn[$id]['results'] = $results;            
         }
 
-        //$arrReturn = array_merge($arrReturn, $results);
+        $arrReturn = array_merge($arrReturn, $results);*/
 
-        /*$search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
+        $search = $this->searchForElementRelations($limit, $count, $sourceElement, $sites, $results);
         $arrReturn = array_merge($arrReturn, $search['results']);
         $count = $search['count'];
 
@@ -137,7 +139,7 @@ class SafeDeleteService extends Component
                 $arrReturn = array_merge($arrReturn, $search['results']);
                 $count = $search['count'];
             }
-        }*/
+        }
 
         return $arrReturn;
     }
@@ -147,7 +149,7 @@ class SafeDeleteService extends Component
      * @param int $id
      * @return array
      */
-    private function getCraftAssetsRelationsDebug(int $id) : array
+    private function getCraftRelationsDebug(int $id) : array
     {
         return (new Query())->select('{{%elements}}.id, {{%elements}}.dateDeleted')
                             ->from('{{%elements}}')
@@ -163,7 +165,7 @@ class SafeDeleteService extends Component
      * @param int $id
      * @return array
      */
-    private function getCraftAssetsRelations(int $id) : array
+    private function getCraftRelations(int $id) : array
     {
         return (new Query())->select('st.name as siteName, 
                                       fld.id as fieldId,
@@ -197,36 +199,43 @@ class SafeDeleteService extends Component
                             ->all();
     }
 
-    private function getAssetMatrixRelations($id)
+    private function getMatrixRelations($id)
     {
+        //return MatrixBlock::find()->relatedTo($id)->all();
         return $this->baseQuery($id)
                     ->addSelect('s.name as siteName, 
                                 e.dateDeleted as dateDeleted,
                                 m.ownerId as mOwnerId,
                                 src_cnt.title as elementTitle')
-                    ->leftJoin('{{%matrixblocks}} as m', 'm.id = {{%elements}}.canonicalId')
+                    ->leftJoin('{{%matrixblocks}} as m', 'm.id = {{%elements}}.id')
                     ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = m.ownerId')
                     ->leftJoin('{{%elements}} as e', 'e.id = m.ownerId')
                     ->leftJoin('{{%sites}} as s', 'src_cnt.siteId = s.id')
                     ->andWhere(['not', ['m.ownerId' => null]])
                     ->andWhere(['is', 'e.dateDeleted', null])
+                    ->andWhere(['is', 'e.draftId', null])
+                    ->andWhere(['is', 'e.revisionId', null])
+                    ->andWhere(['=', 'e.enabled', 1])
                     ->groupBy('e.id')
                     ->all();
     }
 
-    private function getAssetNeoRelations($id)
+    private function getNeoRelations($id)
     {
         return $this->baseQuery($id)
                     ->addSelect('s.name as siteName,
                                 e.dateDeleted as dateDeleted,
                                 n.ownerId as neoOwnerId,
                                 src_cnt.title as elementTitle')
-                    ->leftJoin('{{%neoblocks}} as n', 'n.id = {{%elements}}.canonicalId')
+                    ->leftJoin('{{%neoblocks}} as n', 'n.id = {{%elements}}.id')
                     ->leftJoin('{{%content}} as src_cnt', 'src_cnt.elementId = n.ownerId')
                     ->leftJoin('{{%elements}} as e', 'e.id = n.ownerId')
                     ->leftJoin('{{%sites}} as s', 'src_cnt.siteId = s.id')
                     ->andWhere(['not', ['n.ownerId' => null]])
                     ->andWhere(['is', 'e.dateDeleted', null])
+                    ->andWhere(['is', 'e.draftId', null])
+                    ->andWhere(['is', 'e.revisionId', null])
+                    ->andWhere(['=', 'e.enabled', 1])
                     ->groupBy('e.id')
                     ->all();
     }
@@ -247,6 +256,29 @@ class SafeDeleteService extends Component
                             ->andWhere(['=', 'rel.targetId', $id]);
     }
 
+    private function baseMatrixQuery($id)
+    {
+        return $mb = MatrixBlock::find()->relatedTo($id)->all();
+        return NeoBlock::find()->relatedTo($mb)->all();
+        return (new Query())->select('{{%elements}}.id as elementId,
+                                      {{%elements}}.type as elementType,
+                                      owners.id as ownerId,
+                                      owners.type as ownerType')
+                            ->from('{{%elements}}')
+                            ->innerJoin('{{%matrixblocks}} as matrixblocks', 'matrixblocks.id = {{%elements}}.id')
+                            ->innerJoin('{{%elements}} as owners', 'owners.id = matrixblocks.ownerId')
+                            ->innerJoin('{{%elements_sites}} as elements_sites', 'elements_sites.elementId = {{%elements}}.id')
+                            ->andWhere(['is', 'owners.draftId', null])
+                            ->andWhere(['is', 'owners.revisionId', null])
+                            ->andWhere(['=', '{{%elements}}.archived', 0])
+                            ->andWhere(['=', '{{%elements}}.enabled', 1])
+                            ->andWhere(['=', '{{elements_sites}}.enabled', 1])
+                            ->andWhere(['is', '{{%elements}}.dateDeleted', null])
+                            ->innerJoin('{{%relations}} as rel', 'rel.sourceId = {{%elements}}.id')
+                            ->andWhere(['=', 'rel.targetId', $id])->all();
+    }
+    
+
     /**
      * Get data by target id
      * @param int $id
@@ -254,10 +286,17 @@ class SafeDeleteService extends Component
      */
     private function getRelationsDataByTargetId(int $id) : array
     {
-        return (new Query())->select('fieldId, sourceId')->from('{{%relations}}')->where(
-            'targetId = :targetId',
-            ['targetId' => $id]
-        )->all();
+        return (new Query())->select('relations.fieldId as fieldId, 
+                                      relations.sourceId as sourceId,
+                                      fields.name as fieldName,
+                                      fields.handle as fieldHandle,
+                                      fields.type as fieldType,
+                                      elements.type as elementType')
+                            ->from('{{%relations}} relations')
+                            ->innerJoin('{{%fields}} as fields', 'relations.fieldId = fields.id')
+                            ->innerJoin('{{%elements}} as elements', 'relations.sourceId = elements.id')
+                            ->where(['=', 'relations.targetId', $id])
+                            ->all();
     }
 
 
@@ -310,14 +349,12 @@ class SafeDeleteService extends Component
 
             $sourceId = $relation['sourceId'];
 
-            $field = Craft::$app->fields->getFieldById($relation['fieldId']);
-
             foreach ($sites as $site) {
 
                 $element = Craft::$app->elements->getElementById($sourceId, null, $site->id);
 
                 if ($element !== null) {
-                    $elementType = Craft::$app->elements->getElementTypeById($sourceId);
+                    $elementType = $relation['elementType'];
 
                     $parent = $this->getBlockParentElement($elementType, $sourceId, $site->id);
 
@@ -334,9 +371,12 @@ class SafeDeleteService extends Component
 
                         $arrReturn[] = [
                             'sourceElement' => $sourceElement,
-                            'field'         => $field,
+                            'fieldName'     => $relation['fieldName'],
+                            'fieldHandle'   => $relation['fieldHandle'],
                             'element'       => $element,
+                            'elementType'   => $this->outputElementType($elementType),
                             'parent'        => $parent,
+                            'parentElementType' => $this->outputElementType(get_class($parent)),
                             'editUrl'       => $editUrl,
                             'site'          => $site->name,
                         ];
@@ -384,7 +424,7 @@ class SafeDeleteService extends Component
      */
     private function resolveElementEditUrl(ElementInterface $edit) : ?string
     {
-        $elementType = Craft::$app->elements->getElementTypeById($edit->id);
+        $elementType = get_class($edit);
 
         switch ($elementType) {
             case Entry::class:
@@ -449,6 +489,10 @@ class SafeDeleteService extends Component
                         [
                             'fieldId'  => $fieldId,
                             'sourceId' => $content['elementId'],
+                            'fieldName' => $fieldResults['field']['name'],
+                            'fieldHandle' => $fieldResults['field']['handle'],
+                            'fieldType' => $fieldResults['field']['type'],
+                            'elementType' => $content['elementType']
                         ],
                     ];
 
@@ -464,5 +508,12 @@ class SafeDeleteService extends Component
             'count'   => $count,
             'results' => $arrReturn,
         ];
+    }
+
+    private function outputElementType(string $type)
+    {
+        $data = explode('\\', $type);
+
+        return end($data);
     }
 }

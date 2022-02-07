@@ -1,12 +1,3 @@
-{% macro outputElementType(id) %}
-{% spaceless %}
-    {% set type = craft.app.elements.getElementTypeById(id)|split('\\') %}
-    {{ type|last }}
-{% endspaceless %}
-{% endmacro %}
-
-{% import _self as macros %}
-
 <div class="body" style="overflow-y: auto; max-height: 100%;">
     <form method="post">
         <div class="main">
@@ -44,10 +35,10 @@
                                     <td>{{ sourceElement.site }}</td>
                                     <td>{{ sourceElement.sourceElement.title }}</td>
                                     {% if sourceElement.parent is not null %}
-                                        <td>{{ macros.outputElementType(sourceElement.parent.id)|t }}
-                                            ({{ macros.outputElementType(sourceElement.element.id)|t }})
+                                        <td>{{ sourceElement.parentElementType|t }}
+                                            ({{ sourceElement.elementType|t }})
                                         </td>
-                                        <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
+                                        <td>{{ sourceElement.fieldName }} ({{ sourceElement.fieldHandle }})</td>
                                         <td>
                                             {% if sourceElement.editUrl is not null %}
                                                 <a href="{{ sourceElement.editUrl }}"
@@ -58,8 +49,8 @@
                                         </td>
                                         <td>{{ sourceElement.parent.slug }}</td>
                                     {% else %}
-                                        <td>{{ macros.outputElementType(sourceElement.element.id)|t }}</td>
-                                        <td>{{ sourceElement.field.name }} ({{ sourceElement.field.handle }})</td>
+                                        <td>{{ sourceElement.elementType|t }}</td>
+                                        <td>{{ sourceElement.fieldName }} ({{ sourceElement.fieldHandle }})</td>
                                         <td>
                                             {% if sourceElement.editUrl is not null %}
                                                 <a href="{{ sourceElement.editUrl }}"

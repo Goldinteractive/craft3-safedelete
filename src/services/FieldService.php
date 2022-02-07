@@ -43,7 +43,7 @@ class FieldService extends Component
             if (!empty($content)) {
                 $ret[] = [
                     'field'   => $field,
-                    'content' => $content,
+                    'content' => $content
                 ];
             }
         }
@@ -60,6 +60,7 @@ class FieldService extends Component
         $query = (new Query())
             ->select([
                 'id',
+                'name',
                 'handle',
                 'context',
                 'type',
@@ -86,9 +87,12 @@ class FieldService extends Component
             ->select([
                 'elementId',
                 'siteId',
+                'type',
+                'elements.type as elementType',
                 $fullName,
             ])
             ->from(['{{%content}} content'])
+            ->innerJoin('{{%elements}} as elements', 'content.elementId = elements.id')
             ->where($fullName . ' IS NOT NULL AND ' . $fullName . ' != \'[]\'');
 
         if (!empty($filterValue)) {
@@ -110,6 +114,7 @@ class FieldService extends Component
         return array_map(function ($result) use ($fullName) {
             return [
                 'elementId' => $result['elementId'],
+                'elementType' => $result['elementType'],
                 'siteId'    => $result['siteId'],
                 'field'     => $result[$fullName],
             ];
