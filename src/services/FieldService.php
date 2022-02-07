@@ -89,6 +89,7 @@ class FieldService extends Component
                 'siteId',
                 'type',
                 'elements.type as elementType',
+                'sites.name as siteName',
                 $fullName,
             ])
             ->from(['{{%content}} content'])
@@ -121,6 +122,7 @@ class FieldService extends Component
                 'elementId' => $result['elementId'],
                 'elementType' => $result['elementType'],
                 'siteId'    => $result['siteId'],
+                'siteName'  => $result['siteName'],
                 'field'     => $result[$fullName],
             ];
         }, $results);

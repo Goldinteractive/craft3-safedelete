@@ -358,14 +358,14 @@ class SafeDeleteService extends Component
 
             $sourceId = $relation['sourceId'];
 
-            foreach ($sites as $site) {
+            
 
-                $element = Craft::$app->elements->getElementById($sourceId, null, $site->id);
+                $element = Craft::$app->elements->getElementById($sourceId, null, $relation['siteId']);
 
                 if ($element !== null) {
                     $elementType = $relation['elementType'];
 
-                    $parent = $this->getBlockParentElement($elementType, $sourceId, $site->id);
+                    $parent = $this->getBlockParentElement($elementType, $sourceId, $relation['siteId']);
 
                     // if the element is referenced but not used in any entry, continue
                     if (($elementType == 'craft\elements\MatrixBlock' || $elementType == 'benf\neo\elements\Block') && !$parent) {
@@ -387,13 +387,13 @@ class SafeDeleteService extends Component
                             'parent'        => $parent,
                             'parentElementType' => $this->outputElementType(get_class($parent)),
                             'editUrl'       => $editUrl,
-                            'site'          => $site->name,
+                            'site'          => $relation['siteName'],
                         ];
 
                         $count++;
                     }
                 }
-            }
+            
         }
 
         return [
@@ -501,7 +501,9 @@ class SafeDeleteService extends Component
                             'fieldName' => $fieldResults['field']['name'],
                             'fieldHandle' => $fieldResults['field']['handle'],
                             'fieldType' => $fieldResults['field']['type'],
-                            'elementType' => $content['elementType']
+                            'elementType' => $content['elementType'],
+                            'siteId' => $content['siteId'],
+                            'siteName' => $content['siteName']
                         ],
                     ];
 
